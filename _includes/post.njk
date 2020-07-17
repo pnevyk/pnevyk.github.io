@@ -1,0 +1,12 @@
+---
+layout: base.njk
+---
+<article>
+    <h1>{{ title }}</h1>
+    <div class="metadata">
+        <span>Published on <time datetime="{{ date | isoDate }}">{{ date | readableDate }}</time></span>
+        <span>About {{ content | readingTime({ speed: 200 }) }} reading time</span>
+    </div>
+
+    {{ content | safe }}
+</article>

@@ -1,0 +1,14 @@
+{
+    "name": "eleventy-plugin-figures",
+    "version": "0.1.0",
+    "description": "Eleventy plugin for generating figures out of base <img>",
+    "main": ".eleventy.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "",
+    "license": "MIT",
+    "dependencies": {
+        "markdown-it": "^11.0.0"
+    }
+}

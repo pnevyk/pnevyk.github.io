@@ -1,0 +1,14 @@
+{
+    "name": "eleventy-plugin-tipograph",
+    "version": "0.1.0",
+    "description": "Tipograph plugin for Eleventy",
+    "main": ".eleventy.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "",
+    "license": "MIT",
+    "dependencies": {
+        "tipograph": "^0.7.0"
+    }
+}
