@@ -4,8 +4,16 @@ layout: base.njk
 <article>
     <h1>{{ title }}</h1>
     <div class="metadata">
-        <span>Published on <time datetime="{{ date | isoDate }}">{{ date | readableDate }}</time></span>
-        <span>About {{ content | readingTime({ speed: 200 }) }} reading time</span>
+        <span>Published on <em><time datetime="{{ date | isoDate }}">{{ date | readableDate }}</time></em></span>
+        <span>About <em>{{ content | readingTime({ speed: 200 }) }}</em> reading time</span>
+    </div>
+    <div class="metadata">
+        {% if topics %}
+            Topics:
+        {% endif %}
+        {% for topic in topics %}
+            <em>#{{ topic }}</em>
+        {% endfor %}
     </div>
 
     {{ content | safe }}

@@ -2,9 +2,10 @@
 :root {
     --darkest: #151b24;
     --darker: #222831;
-    --dark: #3282b8;
-    --textcolor: #ececec;
-    --linkcolor: #c98c00;
+    --functional: #3282b8;
+    --functional-highlight: #7fcfff;
+    --text-color: #ececec;
+    --link-color: #c98c00;
     --separator: #2F353E;
 }
 }
@@ -13,16 +14,17 @@
 :root {
     --darkest: #dfdfdf;
     --darker: #ececec;
-    --dark: #3282b8;
-    --textcolor: #222831;
-    --linkcolor: #c98c00;
+    --functional: #3282b8;
+    --functional-highlight: #00366C;
+    --text-color: #222831;
+    --link-color: #c98c00;
     --separator: #f4f4f4;
 }
 }
 
 html,
 body {
-    color: var(--textcolor);
+    color: var(--text-color);
     background-color: var(--darker);
     font-family: 'Ubuntu', sans-serif;
     font-size: 115%;
@@ -85,12 +87,12 @@ p {
 }
 
 a:link {
-    color: var(--linkcolor);
+    color: var(--link-color);
     text-decoration: none;
 }
 
 a:visited {
-    color: var(--linkcolor);
+    color: var(--link-color);
 }
 
 a:hover {
@@ -98,7 +100,7 @@ a:hover {
 }
 
 a.title {
-    color: var(--textcolor);
+    color: var(--text-color);
 }
 
 figure {
@@ -113,7 +115,7 @@ figcaption > p {
 blockquote {
     margin: 0;
     padding: 16px 24px;
-    border-left: 5px solid var(--dark);
+    border-left: 5px solid var(--functional);
 }
 
 blockquote > p {
@@ -140,8 +142,12 @@ footer p {
 }
 
 .metadata {
-    color: var(--dark);
+    color: var(--functional);
     font-style: oblique;
+}
+
+.metadata em {
+    color: var(--functional-highlight);
 }
 
 .metadata > *:not(:last-child)::after {
@@ -154,7 +160,7 @@ footer > .links {
 }
 
 footer > .links a {
-    color: var(--textcolor);
+    color: var(--text-color);
     font-size: 1.8rem;
     margin: 4px;
 }
