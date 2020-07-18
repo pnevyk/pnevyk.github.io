@@ -60,19 +60,12 @@ h3 {
     font-weight: normal;
 }
 
+/* Aside heading */
 h4 {
-    font-size: 1.5rem;
-    font-weight: normal;
-}
-
-h5 {
-    font-size: 1.4rem;
-    font-weight: normal;
-}
-
-h6 {
     font-size: 1.3rem;
-    font-weight: normal;
+    font-weight: bold;
+    text-align: center;
+    color: var(--functional);
 }
 
 p, li, .metadata {
@@ -110,6 +103,7 @@ figure {
 
 figcaption > p {
     font-size: 80%;
+    text-align: center;
 }
 
 blockquote {
@@ -132,6 +126,23 @@ p > code, a > code, li > code {
     border-radius: 5px;
 }
 
+hr {
+    width: 95%;
+    height: 2px;
+    background-color: var(--separator);
+    border: 0;
+    border-bottom: solid 2px var(--darkest);
+    margin: 64px auto;
+}
+
+hr.separator:last-of-type {
+    display: none;
+}
+
+img {
+    max-width: 850px;
+}
+
 .subtitle {
     font-size: 1rem;
 }
@@ -148,6 +159,7 @@ footer p {
 
 .metadata em {
     color: var(--functional-highlight);
+    font-style: normal;
 }
 
 .metadata > *:not(:last-child)::after {
@@ -174,19 +186,6 @@ pre[class*="language-"] {
 
 .katex-display, .eleventy-plugin-youtube-embed {
     margin: 32px auto;
-}
-
-hr.separator {
-    width: 95%;
-    height: 1px;
-    background-color: var(--separator);
-    border: 0;
-    border-bottom: solid 1px var(--darkest);
-    margin: 64px auto;
-}
-
-hr.separator:last-of-type {
-    display: none;
 }
 
 @media (prefers-color-scheme: light) {
