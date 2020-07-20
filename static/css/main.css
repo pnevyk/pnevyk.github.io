@@ -28,7 +28,8 @@ body {
     background-color: var(--darker);
     font-family: 'Ubuntu', sans-serif;
     font-size: 115%;
-    letter-spacing: 0.10rem;
+    letter-spacing: 0.07rem;
+    line-height: 1.45;
 }
 
 #content {
@@ -68,10 +69,6 @@ h4 {
     color: var(--functional);
 }
 
-p, li, .metadata {
-    line-height: 1.45;
-}
-
 @media only screen and (min-width: 850px) {
 p {
     text-align: justify;
@@ -104,16 +101,22 @@ figure {
 figcaption > p {
     font-size: 80%;
     text-align: center;
+    hyphens: none;
 }
 
 blockquote {
     margin: 0;
-    padding: 16px 24px;
+    padding: 2px 24px;
     border-left: 5px solid var(--functional);
 }
 
 blockquote > p {
-    margin: 0;
+    font-style: oblique;
+    opacity: 0.75;
+}
+
+blockquote > p > em {
+    font-style: normal;
 }
 
 li {
