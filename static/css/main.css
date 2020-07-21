@@ -156,7 +156,7 @@ hr.separator:last-of-type {
 }
 
 img {
-    max-width: 850px;
+    max-width: 100%;
 }
 
 ::selection {
