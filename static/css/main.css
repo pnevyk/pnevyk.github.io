@@ -5,8 +5,9 @@
     --functional: #3282b8;
     --functional-highlight: #7fcfff;
     --text-color: #ececec;
-    --link-color: #c98c00;
+    --link-color: #FF8000;
     --separator: #2F353E;
+    --opaque: #707681;
 }
 }
 
@@ -17,8 +18,9 @@
     --functional: #3282b8;
     --functional-highlight: #00366C;
     --text-color: #222831;
-    --link-color: #c98c00;
+    --link-color: #FF8000;
     --separator: #f4f4f4;
+    --opaque: #707681;
 }
 }
 
@@ -26,10 +28,10 @@ html,
 body {
     color: var(--text-color);
     background-color: var(--darker);
-    font-family: 'Ubuntu', sans-serif;
+    font-family: 'Quicksand', sans-serif;
     font-size: 115%;
     letter-spacing: 0.07rem;
-    line-height: 1.45;
+    line-height: 1.7;
 }
 
 #content {
@@ -44,21 +46,29 @@ body {
 }
 
 h1 {
-    margin-top: 64px;
+    margin-top: 3.5rem;
+    margin-bottom: 1rem;
     font-size: 2.6rem;
     font-weight: bold;
+    line-height: 1.3;
+    font-family: 'Source Sans Pro', sans-serif;
 }
 
 h2 {
-    margin-top: 64px;
+    margin-top: 3.5rem;
+    margin-bottom: 1rem;
     font-size: 2rem;
-    font-weight: normal;
+    font-weight: bold;
+    line-height: 1.3;
+    font-family: 'Source Sans Pro', sans-serif;
 }
 
 h3 {
-    margin-top: 32px;
+    margin-top: 1.5rem;
+    margin-bottom: 0.8rem;
     font-size: 1.7rem;
     font-weight: normal;
+    line-height: 1.3;
 }
 
 /* Aside heading */
@@ -69,9 +79,12 @@ h4 {
     color: var(--functional);
 }
 
+p {
+    margin-bottom: 1.75rem;
+}
+
 @media only screen and (min-width: 850px) {
 p {
-    text-align: justify;
     hyphens: auto;
 }
 }
@@ -111,7 +124,7 @@ blockquote {
 }
 
 blockquote > p {
-    font-style: oblique;
+    font-style: italic;
     opacity: 0.75;
 }
 
@@ -131,10 +144,10 @@ p > code, a > code, li > code {
 
 hr {
     width: 95%;
-    height: 2px;
+    height: 1px;
     background-color: var(--separator);
     border: 0;
-    border-bottom: solid 2px var(--darkest);
+    border-bottom: solid 1px var(--darkest);
     margin: 64px auto;
 }
 
@@ -144,6 +157,22 @@ hr.separator:last-of-type {
 
 img {
     max-width: 850px;
+}
+
+::selection {
+    background: var(--link-color);
+}
+
+::-moz-selection {
+    background: var(--link-color);
+}
+
+a::selection {
+    color: var(--text-color);
+}
+
+a::-moz-selection {
+    color: var(--text-color);
 }
 
 .subtitle {
@@ -156,12 +185,13 @@ footer p {
 }
 
 .metadata {
-    color: var(--functional);
-    font-style: oblique;
+    color: var(--opaque);
+    font-size: 80%;
+    font-style: italic;
 }
 
 .metadata em {
-    color: var(--functional-highlight);
+    color: var(--text-color);
     font-style: normal;
 }
 
@@ -178,6 +208,16 @@ footer > .links a {
     color: var(--text-color);
     font-size: 1.8rem;
     margin: 4px;
+}
+
+#progress {
+    width: 0;
+    height: 5px;
+    background-color: var(--functional);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
 }
 
 pre[class*="language-"] {
