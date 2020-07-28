@@ -35,7 +35,7 @@
  <h1>Writing a simple query system in Rust</h1>
  <div class="metadata">
  <span>Published on <em><time datetime="2020-07-27">July 27, 2020</time></em></span>
- <span>About <em>21 min</em> reading time</span>
+ <span>About <em>22 min</em> reading time</span>
  </div>
  <div class="metadata">
  
@@ -63,6 +63,22 @@ and hence the post may be also seen as a discovery journey.
 On the other hand, if you are a professional Rustacean,
 you might find this article a bit boring and perhaps even know a more efficient and ergonomic solution.
 But anyway, let’s dive in.</p>
+<hr>
+<h2>TL;DR</h2>
+<p>This is quite a long post.
+Thus I am going to summarize it here,
+and if you remain interested I will be more than happy if you continue reading.</p>
+<p>The queries will be actually types implementing a trait
+and stored in a cache using <code>TypeId</code> type and <code>Any</code> trait for dynamic typing.
+To enable memoization, interior mutability (<code>RefCell</code>) will be utilized,
+as well as shared ownership (<code>Rc</code>) to satisfy lifetimes.</p>
+<p>To simplify you random access in this article, here is an organization:
+The first section is just an introduction to the pattern with examples of use cases.
+The second one is for introducing a toy example.
+The third section further talks about the desired API of our system.
+Next three sections discuss individual topics: dynamic typing, interior mutability and shared ownership.
+Before conclusion, some interesting facts about a secret-for-now poem are revealed using implemented queries.</p>
+<hr>
 <h2>Introduction and context</h2>
 <p>We can split the phrase “query system” into two parts – “query” and “system”.
 The <strong>system</strong> (or <strong>database</strong>) encapsulates some underlying data in a form specific to given application
