@@ -106,7 +106,7 @@ And interestingly, it is <a href="https://ollef.github.io/blog/posts/query-based
 When you slightly change a single file <code>foo.rs</code> and save it,
 then the compiler sets the content to its database and calls “compile query”.
 Under the hood a long chain of queries is spawned
-but only few of them must be recomputed – those which are affected by the the change in that file.
+but only few of them must be recomputed – those which are affected by the change in that file.
 The rest can be provided from the cache.
 Structuring the codebase in such queries makes things much more simple.</p>
 <p>If you want to get your hands dirty and try this pattern while using a library not really developed by beginners,
