@@ -354,6 +354,11 @@ I believe it is worth to keep this approach in mind and an application may occur
 Or you will come up with a project where it can be utilized.
 The example used in this post was interesting, but not that much useful.
 But I am sure you can think of a scenario where this is a perfect fit.</p>
+<hr>
+<p><strong>Update:</strong> See <a href="https://www.reddit.com/user/frondeus">u/frondeus</a>'s improvements, polishes and additions in this <a href="https://play.rust-lang.org/?version=stable&amp;mode=debug&amp;edition=2018&amp;gist=0cc8487d8e0a28dcc825962a5643c091">playground</a>!
+An especially amazing idea is adding <code>type Output</code> associated to the <code>Query</code> trait such that the output of a query can be some arbitrary type,
+even one that does not belong to you (like <code>usize</code>, for which we needed to write <code>get</code> function on each query type).
+But there is more…</p>
 
 </article>
 
