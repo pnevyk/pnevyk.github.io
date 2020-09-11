@@ -13,15 +13,7 @@
  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700&display=swap" rel="stylesheet">
  <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
  <link href="/static/css/main.css" rel="stylesheet">
- <!-- Global site tag (gtag.js) - Google Analytics -->
- <script async src="https://www.googletagmanager.com/gtag/js?id=UA-172992478-1"></script>
- <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-
-        gtag('config', 'UA-172992478-1');
-    </script>
+ 
 </head>
 <body lang="en">
  <div id="content">
@@ -53,9 +45,9 @@ The data don’t need to be computed ahead of time at the start of the program, 
 In this post, I will walk you through a solution to this approach I came up with in Rust,
 which happened to be a good fit in one of my projects.
 If not yet, you will eventually be able to implement your own, tailored to your needs.</p>
-<figure><img src="/static/img/hand.jpg" alt="<p>An illustration of a query system. Photo by Pixabay on Pexels.com
-"><figcaption> <p>An illustration of a query system. Photo by <a href="https://www.pexels.com/@pixabay">Pixabay</a> on <a href="https://www.pexels.com/photo/close-up-of-hand-over-white-background-255527/">Pexels.com</a></p>
- </figcaption></figure>
+<figure><img src="/static/img/hand.jpg" alt="An illustration of a query system. Photo by Pixabay on Pexels.com
+"><figcaption><p>An illustration of a query system. Photo by <a href="https://www.pexels.com/@pixabay">Pixabay</a> on <a href="https://www.pexels.com/photo/close-up-of-hand-over-white-background-255527/">Pexels.com</a></p>
+</figcaption></figure>
 <p>In the explanations, I assume that you know the basics of Rust, especially those which are specific to this language.
 We are going to encounter issues regarding some of those.
 To solve them, a couple of interesting types from the standard library will be used
@@ -64,7 +56,7 @@ On the other hand, if you are a professional Rustacean,
 you might find this article a bit boring and perhaps even know a more efficient and ergonomic solution.
 But anyway, let’s dive in.</p>
 <hr>
-<h2>TL;DR</h2>
+<h2 id="tl%3Bdr"><a class="header-anchor" href="#tl%3Bdr">&sect;</a> TL;DR</h2>
 <p>This is quite a long post.
 Thus I am going to summarize it here,
 and if you remain interested I will be more than happy if you continue reading.</p>
@@ -79,7 +71,7 @@ The third section further talks about the desired API of our system.
 Next three sections discuss individual topics: dynamic typing, interior mutability and shared ownership.
 Before conclusion, some interesting facts about a secret-for-now poem are revealed using implemented queries.</p>
 <hr>
-<h2>Introduction and context</h2>
+<h2 id="introduction-and-context"><a class="header-anchor" href="#introduction-and-context">&sect;</a> Introduction and context</h2>
 <p>We can split the phrase “query system” into two parts – “query” and “system”.
 The <strong>system</strong> (or <strong>database</strong>) encapsulates some underlying data in a form specific to given application
 and it provides a way how to make <strong>queries</strong> to these data to obtain some high-level information.
@@ -114,13 +106,13 @@ then take a look at <a href="https://github.com/salsa-rs/salsa">salsa</a>.
 I also do recommend the talk <em>Responsive compilers</em> by Niko Matsakis,
 where he explains (among others) this approach and how it is used within Rust compiler.</p>
 <div id="N6b44kMS6OM" class="eleventy-plugin-youtube-embed"style="position:relative;width:100%;padding-top: 56.25%;"><iframe style="position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;" width="100%" height="100%" frameborder="0" src="https://www.youtube-nocookie.com/embed/N6b44kMS6OM" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
-<h2>Setting up our scenario</h2>
+<h2 id="setting-up-our-scenario"><a class="header-anchor" href="#setting-up-our-scenario">&sect;</a> Setting up our scenario</h2>
 <p>For not being lost in a sea of abstractness, we need a simple yet interesting example.
 So we will do some analysis on a text.
 And for the text, let’s grab an <em>obvious</em> choice – <em>The Raven</em> by Edgar Allan Poe.</p>
-<figure><img src="/static/img/raven.png" alt="<p>The first stanza of The Raven. A screenshot from Poetry Foundation
-"><figcaption> <p>The first stanza of <em>The Raven</em>. A screenshot from <a href="https://www.poetryfoundation.org/poems/48860/the-raven">Poetry Foundation</a></p>
- </figcaption></figure>
+<figure><img src="/static/img/raven.png" alt="The first stanza of The Raven. A screenshot from Poetry Foundation
+"><figcaption><p>The first stanza of <em>The Raven</em>. A screenshot from <a href="https://www.poetryfoundation.org/poems/48860/the-raven">Poetry Foundation</a></p>
+</figcaption></figure>
 <p>What could interest us on this classic piece of poetry is for example
 the count of occurrences of the word “Raven”,
 the number of verses and <a href="https://en.wikipedia.org/wiki/Stanza">stanzas</a>,
@@ -134,7 +126,7 @@ We certainly want to support this requirement.</p>
 <p>and load it with a few lines of Rust.</p>
 <pre class="language-rust"><code class="language-rust"><span class="token keyword">use</span> std<span class="token punctuation">::</span>env<span class="token punctuation">;</span><br><span class="token keyword">use</span> std<span class="token punctuation">::</span>fs<span class="token punctuation">::</span>File<span class="token punctuation">;</span><br><span class="token keyword">use</span> std<span class="token punctuation">::</span>io<span class="token punctuation">::</span>prelude<span class="token punctuation">::</span><span class="token operator">*</span><span class="token punctuation">;</span><br><br><span class="token keyword">fn</span> <span class="token function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    <span class="token comment">// The file can be specified as the first argument of our program</span><br>    <span class="token keyword">let</span> filename <span class="token operator">=</span> <span class="token keyword">match</span> env<span class="token punctuation">::</span><span class="token function">args</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">nth</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>        <span class="token function">Some</span><span class="token punctuation">(</span>filename<span class="token punctuation">)</span> <span class="token operator">=></span> filename<span class="token punctuation">,</span><br>        None <span class="token operator">=></span> <span class="token function">panic!</span><span class="token punctuation">(</span><span class="token string">"provide a filename as the first argument"</span><span class="token punctuation">)</span><span class="token punctuation">,</span><br>    <span class="token punctuation">}</span><span class="token punctuation">;</span><br><br>    <span class="token keyword">let</span> <span class="token keyword">mut</span> file <span class="token operator">=</span> File<span class="token punctuation">::</span><span class="token function">open</span><span class="token punctuation">(</span>filename<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">expect</span><span class="token punctuation">(</span><span class="token string">"file does not exist"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>    <span class="token keyword">let</span> <span class="token keyword">mut</span> text <span class="token operator">=</span> String<span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>    file<span class="token punctuation">.</span><span class="token function">read_to_string</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">mut</span> text<span class="token punctuation">)</span><br>        <span class="token punctuation">.</span><span class="token function">expect</span><span class="token punctuation">(</span><span class="token string">"an error during reading the file"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>    <span class="token function">print!</span><span class="token punctuation">(</span><span class="token string">"{}"</span><span class="token punctuation">,</span> text<span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span></code></pre>
 <p>Now, run the program using <code>cargo run -- raven.txt</code> and enjoy the art for a while.</p>
-<h2>Desired goal</h2>
+<h2 id="desired-goal"><a class="header-anchor" href="#desired-goal">&sect;</a> Desired goal</h2>
 <p>We will make our structure a bit more flexible than the code introduced in the beginning of this post.
 Instead of defining a method for every and each query,
 our system will allow any query represented by a type that implements a <code>Query</code> trait of ours.</p>
@@ -150,7 +142,7 @@ it’s still not a representative of short <a href="https://en.wikipedia.org/wik
 To satisfy one of the advantages of query system pattern, the queries will be cached so they are computed <strong>at most once</strong>.
 There is one caveat though.
 We would like to hide the memoization as an implementation detail and so making the query should take <strong>immutable</strong> reference.</p>
-<h2>First attempt</h2>
+<h2 id="first-attempt"><a class="header-anchor" href="#first-attempt">&sect;</a> First attempt</h2>
 <p>A straightforward idea for memoization is to maintain a cache in the form of <a href="https://doc.rust-lang.org/stable/std/collections/struct.HashMap.html"><code>HashMap</code></a>.
 Since we want to store queries of <strong>any</strong> type (as long as they implement a trait we require),
 we need to exploit <a href="https://doc.rust-lang.org/stable/std/any/index.html">reflection capabilities</a> of Rust.
@@ -162,9 +154,9 @@ which represents a <strong>globally unique</strong> identifier for any type.</p>
 <pre class="language-rust"><code class="language-rust"><span class="token keyword">use</span> std<span class="token punctuation">::</span>any<span class="token punctuation">::</span><span class="token punctuation">{</span>Any<span class="token punctuation">,</span> TypeId<span class="token punctuation">}</span><span class="token punctuation">;</span><br><span class="token keyword">use</span> std<span class="token punctuation">::</span>collections<span class="token punctuation">::</span>HashMap<span class="token punctuation">;</span><br><br><span class="token comment">// Query needs to be 'static so we can cast it to `Any`.</span><br><span class="token keyword">pub</span> <span class="token keyword">trait</span> Query<span class="token punctuation">:</span> <span class="token lifetime-annotation symbol">'static</span> <span class="token punctuation">{</span><br>    <span class="token comment">// The arguments are &amp;String for computing the query and &amp;System for calling</span><br>    <span class="token comment">// other queries.</span><br>    <span class="token keyword">fn</span> <span class="token function">init_query</span><span class="token punctuation">(</span>text<span class="token punctuation">:</span> <span class="token operator">&amp;</span>String<span class="token punctuation">,</span> system<span class="token punctuation">:</span> <span class="token operator">&amp;</span>System<span class="token punctuation">)</span> <span class="token punctuation">-></span> <span class="token keyword">Self</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span><br><br><span class="token keyword">pub</span> <span class="token keyword">struct</span> System <span class="token punctuation">{</span><br>    <span class="token comment">// Our underlying data.</span><br>    text<span class="token punctuation">:</span> String<span class="token punctuation">,</span><br>    <span class="token comment">// Our cache where the key is the type of the query and the value is ts</span><br>    <span class="token comment">// value. We use `Any` type for "dynamic" typing here.</span><br>    queries<span class="token punctuation">:</span> HashMap<span class="token operator">&lt;</span>TypeId<span class="token punctuation">,</span> Box<span class="token operator">&lt;</span><span class="token keyword">dyn</span> Any<span class="token operator">>></span><span class="token punctuation">,</span><br><span class="token punctuation">}</span><br><br><span class="token keyword">impl</span> System <span class="token punctuation">{</span><br>    <span class="token keyword">pub</span> <span class="token keyword">fn</span> <span class="token function">new</span><span class="token punctuation">(</span>text<span class="token punctuation">:</span> String<span class="token punctuation">)</span> <span class="token punctuation">-></span> <span class="token keyword">Self</span> <span class="token punctuation">{</span><br>        System <span class="token punctuation">{</span><br>            text<span class="token punctuation">,</span><br>            queries<span class="token punctuation">:</span> HashMap<span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span><br>        <span class="token punctuation">}</span><br>    <span class="token punctuation">}</span><br><br>    <span class="token comment">// Usage: `let result = system.query::&lt;MyQuery>()`</span><br>    <span class="token keyword">pub</span> <span class="token keyword">fn</span> query<span class="token operator">&lt;</span>Q<span class="token punctuation">:</span> Query<span class="token operator">></span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">self</span><span class="token punctuation">)</span> <span class="token punctuation">-></span> <span class="token operator">&amp;</span>Q <span class="token punctuation">{</span><br>        <span class="token keyword">let</span> type_id <span class="token operator">=</span> TypeId<span class="token punctuation">::</span>of<span class="token punctuation">::</span><span class="token operator">&lt;</span>Q<span class="token operator">></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>        <span class="token comment">// We first check if the query has been already computed in the past.</span><br>        <span class="token keyword">if</span> <span class="token operator">!</span><span class="token keyword">self</span><span class="token punctuation">.</span>queries<span class="token punctuation">.</span><span class="token function">contains_key</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>type_id<span class="token punctuation">)</span> <span class="token punctuation">{</span><br>            <span class="token comment">// The query is not in the cache so we need to compute it.</span><br>            <span class="token keyword">let</span> query <span class="token operator">=</span> Q<span class="token punctuation">::</span><span class="token function">init_query</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">self</span><span class="token punctuation">.</span>text<span class="token punctuation">,</span> <span class="token operator">&amp;</span><span class="token keyword">self</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>            <span class="token comment">// And store it into our cache.</span><br>            <span class="token keyword">self</span><span class="token punctuation">.</span>queries<span class="token punctuation">.</span><span class="token function">insert</span><span class="token punctuation">(</span>type_id<span class="token punctuation">,</span> Box<span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span>query<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>        <span class="token punctuation">}</span><br><br>        <span class="token comment">// The previous conditioned block ensures that the cache already</span><br>        <span class="token comment">// contains the query so we can obtain it (and safely call unwrap).</span><br>        <span class="token keyword">let</span> any <span class="token operator">=</span> <span class="token keyword">self</span><span class="token punctuation">.</span>queries<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>type_id<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">unwrap</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>        <span class="token comment">// Cast the `Any` type to the type of this query. Since we maintain</span><br>        <span class="token comment">// our cache by the type id, we are sure that this cast will</span><br>        <span class="token comment">// succeed.</span><br>        any<span class="token punctuation">.</span>downcast_ref<span class="token punctuation">::</span><span class="token operator">&lt;</span>Q<span class="token operator">></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">unwrap</span><span class="token punctuation">(</span><span class="token punctuation">)</span><br>    <span class="token punctuation">}</span><br><span class="token punctuation">}</span></code></pre>
 <p>But this code gives us one of the most <em>iconic</em> errors for Rust.
 It is depicted in the following figure.</p>
-<figure><img src="/static/img/query-system-cannot-borrow-mutably.png" alt="<p>The compiler error.
-"><figcaption> <p><em>The</em> compiler error.</p>
- </figcaption></figure>
+<figure><img src="/static/img/query-system-cannot-borrow-mutably.png" alt="The compiler error.
+"><figcaption><p><em>The</em> compiler error.</p>
+</figcaption></figure>
 <p>We borrow <code>self</code> by non-exclusive <code>&amp;</code> reference, but try to modify the hash map using <code>insert</code> method.
 Well, this is not possible in Rust (for good reasons).
 The justification for our immutable borrow choice is our requirement that the caching must be invisible to the user.
@@ -186,7 +178,7 @@ We store it into our hash map, but the lifetime is <strong>not</strong> encoded 
 What could then guarantee whether the data behind the lifetime <code>'a</code> is still valid when we retrieve the value from the cache some time later?
 <em>Nothing</em>.
 And that’s why it’s not possible to do it.</p>
-<h2>Interior mutability</h2>
+<h2 id="interior-mutability"><a class="header-anchor" href="#interior-mutability">&sect;</a> Interior mutability</h2>
 <p>What we need is so-called <a href="https://doc.rust-lang.org/stable/std/cell/index.html">interior mutability</a>.
 It will allow us to insert values into the hash map while still borrowing <code>&amp;self</code> immutably.
 Recall that one of the most important rules in Rust enforced by the compiler is that any value can have only one of the following (but not both):</p>
@@ -248,7 +240,7 @@ If we put the initialization call as the argument of <code>insert</code>, callin
 <p>At this point, it seems that there is no way for returning a <code>&amp;Q</code> reference while using <code>RefCell</code> semantics.
 And honestly, I don’t know any indeed.
 Hence we need an alternative.</p>
-<h2>Shared ownership</h2>
+<h2 id="shared-ownership"><a class="header-anchor" href="#shared-ownership">&sect;</a> Shared ownership</h2>
 <p>A straightforward way is imposing the <code>Clone</code> requirement for <code>Query</code> trait and cloning the query value every time.
 This might not be that bad if our queries are not large in regards of space and only need to be cached due to their computational cost.
 Fortunately, there is a bit smarter way of achieving (sort of) what we want.
@@ -280,12 +272,12 @@ On the next line, instead of casting <code>Any</code> into a reference to <code>
 And that is why <code>downcast_ref</code> becomes <code>downcast</code>.
 By the way, the former is defined on <code>Any</code> itself, while the latter is a method of <code>Rc</code>.</p>
 <p>At this moment, we finally compile without errors!</p>
-<figure><img src="/static/img/annecy-fireworks.jpg" alt="<p>A moderately populated city in France celebrating that we compiled our program without errors.
+<figure><img src="/static/img/annecy-fireworks.jpg" alt="A moderately populated city in France celebrating that we compiled our program without errors.
 Photo by Nicolas Tissot on Unsplash.
-"><figcaption> <p>A moderately populated city in France celebrating that we compiled our program without errors.
+"><figcaption><p>A moderately populated city in France celebrating that we compiled our program without errors.
 Photo by <a href="https://unsplash.com/@nft">Nicolas Tissot</a> on <a href="https://unsplash.com/photos/2XSpU-6siwk">Unsplash</a>.</p>
- </figcaption></figure>
-<h2>Short recap</h2>
+</figcaption></figure>
+<h2 id="short-recap"><a class="header-anchor" href="#short-recap">&sect;</a> Short recap</h2>
 <p>So what we have so far?
 We have a <code>System</code> structure that provides us with <code>query</code> method to be used for querying the underlying string.
 It takes immutable reference to the system as querying is immutable computation in our eyes.</p>
@@ -298,7 +290,7 @@ we employ interior mutability technique provided by <code>RefCell</code>.</p>
 We use this approach to hide implementation details.
 So far, the implementation detail is that we hold the value inside <code>Rc</code> smart pointer,
 because we are forced to return an owned value from type system point of view.</p>
-<h2>Writing queries</h2>
+<h2 id="writing-queries"><a class="header-anchor" href="#writing-queries">&sect;</a> Writing queries</h2>
 <p>Now is finally the time when we start to write our actual queries.
 Let’s use those mentioned when we introduced the <em>The Raven</em> example:</p>
 <ul>
@@ -309,7 +301,7 @@ Let’s use those mentioned when we introduced the <em>The Raven</em> example:</
 </ul>
 <p>We start with the first one:</p>
 <pre class="language-rust"><code class="language-rust"><span class="token keyword">use</span> <span class="token keyword">crate</span><span class="token punctuation">::</span>system<span class="token punctuation">::</span><span class="token punctuation">{</span>Query<span class="token punctuation">,</span> System<span class="token punctuation">}</span><span class="token punctuation">;</span><br><br><span class="token keyword">pub</span> <span class="token keyword">struct</span> RavenCount <span class="token punctuation">{</span><br>    count<span class="token punctuation">:</span> usize<span class="token punctuation">,</span><br><span class="token punctuation">}</span><br><br><span class="token keyword">impl</span> RavenCount <span class="token punctuation">{</span><br>    <span class="token keyword">pub</span> <span class="token keyword">fn</span> <span class="token function">get</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">self</span><span class="token punctuation">)</span> <span class="token punctuation">-></span> usize <span class="token punctuation">{</span><br>        <span class="token keyword">self</span><span class="token punctuation">.</span>count<br>    <span class="token punctuation">}</span><br><span class="token punctuation">}</span><br><br><span class="token keyword">impl</span> Query <span class="token keyword">for</span> RavenCount <span class="token punctuation">{</span><br>    <span class="token keyword">fn</span> <span class="token function">init_query</span><span class="token punctuation">(</span>text<span class="token punctuation">:</span> <span class="token operator">&amp;</span>String<span class="token punctuation">,</span> _system<span class="token punctuation">:</span> <span class="token operator">&amp;</span>System<span class="token punctuation">)</span> <span class="token punctuation">-></span> <span class="token keyword">Self</span> <span class="token punctuation">{</span><br>        <span class="token keyword">let</span> count <span class="token operator">=</span> text<br>            <span class="token comment">// Iterate over all characters of the text.</span><br>            <span class="token punctuation">.</span><span class="token function">char_indices</span><span class="token punctuation">(</span><span class="token punctuation">)</span><br>            <span class="token punctuation">.</span><span class="token function">filter</span><span class="token punctuation">(</span><span class="token closure-params"><span class="token punctuation">|</span>(idx<span class="token punctuation">,</span> _)<span class="token punctuation">|</span></span> <span class="token punctuation">{</span><br>                <span class="token comment">// Check if all characters of the word "Raven" match their</span><br>                <span class="token comment">// counterparts in substring of the text beginning at `idx`.</span><br>                text<span class="token punctuation">[</span><span class="token operator">*</span>idx<span class="token punctuation">..</span><span class="token punctuation">]</span><br>                    <span class="token punctuation">.</span><span class="token function">chars</span><span class="token punctuation">(</span><span class="token punctuation">)</span><br>                    <span class="token punctuation">.</span><span class="token function">zip</span><span class="token punctuation">(</span><span class="token string">"Raven"</span><span class="token punctuation">.</span><span class="token function">chars</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><br>                    <span class="token punctuation">.</span><span class="token function">all</span><span class="token punctuation">(</span><span class="token operator">|</span><span class="token punctuation">(</span>lhs<span class="token punctuation">,</span> rhs<span class="token punctuation">)</span><span class="token operator">|</span> lhs <span class="token operator">==</span> rhs<span class="token punctuation">)</span><br>            <span class="token punctuation">}</span><span class="token punctuation">)</span><br>            <span class="token punctuation">.</span><span class="token function">count</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>        RavenCount <span class="token punctuation">{</span> count <span class="token punctuation">}</span><br>    <span class="token punctuation">}</span><br><span class="token punctuation">}</span></code></pre>
-<p>To simulate computational expensiveness of the query, we use brute force algorithm running in <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">O</mi><mo stretchy="false">(</mo><mi>n</mi><mi>m</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{O}(n m)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathcal" style="margin-right:0.02778em;">O</span></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mord mathnormal">m</span><span class="mclose">)</span></span></span></span> time.
+<p>To simulate computational expensiveness of the query, we use brute force algorithm running in <span class="katex-inline"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="script">O</mi><mo stretchy="false">(</mo><mi>n</mi><mi>m</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">\mathcal{O}(n m)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathcal" style="margin-right:0.02778em;">O</span></span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mord mathnormal">m</span><span class="mclose">)</span></span></span></span></span> time.
 If you are interested in speeding it up, you can consult this <a href="https://www-igm.univ-mlv.fr/~lecroq/string/">reference</a> of well-known string matching algorithms.</p>
 <p>I try to have the implementation as idiomatic as possible and that’s why various iterator-based techniques are used instead of “C-idiomatic” nested <code>for</code> loops.
 We don’t use the <code>&amp;System</code> argument in this case so it gets prefixed with the underscore to silence “unused variable” warning.</p>
@@ -334,7 +326,7 @@ They just lead to a <em>stack overflow</em> crash.</p>
 <em>The Raven</em> is actually a carefully structured poem with regular stanzas, each of them having exactly six verses.
 In the end, that’s how poetry was written at those times.
 But a nice thing is that our statistics do not contradict the numbers presented on <a href="https://en.wikipedia.org/wiki/The_Raven#Poetic_structure">Wikipedia</a>.</p>
-<h2>Conclusion</h2>
+<h2 id="conclusion"><a class="header-anchor" href="#conclusion">&sect;</a> Conclusion</h2>
 <p>At this point, we have something that works.
 On the way, we introduced several simplifications – in particular, we are limited to a single thread and there is no way how queries can be parametrized.
 We may look at these features in the future.
