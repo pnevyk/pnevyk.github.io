@@ -23,6 +23,32 @@
  </header>
  <main id="main">
  
+ <h2><a href="/posts/proptest-strategies-the-hard-way/">Proptest strategies the hard way</a></h2>
+ <div class="metadata">
+ <span>Published on <em><time datetime="2023-06-06">June 6, 2023</time></em></span>
+ <span>About <em>20 min</em> reading time</span>
+ </div>
+ <div class="metadata">
+ 
+ Topics:
+ 
+ 
+ <em>#rust</em>
+ 
+ <em>#walk-through</em>
+ 
+ <em>#testing</em>
+ 
+ </div>
+ <p><p><a href="https://crates.io/crates/proptest">Proptest</a> is a Rust crate for <a href="https://altsysrq.github.io/proptest-book/intro.html#what-is-property-testing">property-based testing</a>. It provides data generators for standard types and ways how to
+<a href="https://altsysrq.github.io/proptest-book/proptest/tutorial/macro-prop-compose.html">combine</a> and
+<a href="https://altsysrq.github.io/proptest-book/proptest/tutorial/transforming-strategies.html">transform</a> those to create instances of your own types.
+You can also use <a href="https://altsysrq.github.io/proptest-book/proptest-derive/index.html">proptest-derive</a> crate for implementing the generator for your type automatically.
+All this is useful, but in more complicated cases it makes sense to implement this manually.
+And this post shows how to do that.
+It is based on my experience writing generators for <a href="https://github.com/pnevyk/gryf/blob/main/src/infra/proptest.rs">gryf</a> graph library.</p></p>
+ <hr class="separator">
+
  <h2><a href="/posts/query-system-in-rust/">Writing a simple query system in Rust</a></h2>
  <div class="metadata">
  <span>Published on <em><time datetime="2020-07-27">July 27, 2020</time></em></span>

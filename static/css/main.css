@@ -32,6 +32,7 @@ body {
     font-size: 115%;
     letter-spacing: 0.07rem;
     line-height: 1.7;
+    scroll-behavior: smooth;
 }
 
 #content {
@@ -125,6 +126,10 @@ blockquote > p > em {
     font-style: normal;
 }
 
+ul, ol {
+    padding-left: 2.25rem;
+}
+
 li {
     margin-bottom: 16px;
     padding-left: 0.75rem;
@@ -134,6 +139,11 @@ p > code, a > code, li > code {
     background-color: var(--darkest);
     padding: 2px 5px;
     border-radius: 5px;
+    font-family: 'Quicksand', sans-serif;
+}
+
+aside.warning > p > code {
+    background-color: var(--darker);
 }
 
 hr {
@@ -151,6 +161,9 @@ hr.separator:last-of-type {
 
 img {
     max-width: 100%;
+    display: block;
+    position: relative;
+    margin: auto;
 }
 
 ::selection {
@@ -209,7 +222,7 @@ aside {
 }
 
 aside.note {
-    margin: 16px auto;
+    margin: 32px auto;
     width: 90%;
     border: solid 1px var(--functional);
     border-radius: 5px;
@@ -218,8 +231,12 @@ aside.note {
 
 aside.note h3 {
     color: var(--functional);
-    font-size: 1.25em;
     text-align: center;
+    margin-top: 1.5rem;
+    margin-bottom: 0.8rem;
+    font-size: 1.7rem;
+    font-weight: normal;
+    line-height: 1.3;
 }
 
 aside.warning {
@@ -247,6 +264,17 @@ aside.warning::before {
     text-align: center;
 }
 
+details.toc > summary {
+    margin-top: 3.5rem;
+    margin-bottom: 1rem;
+    font-size: 2rem;
+    font-weight: bold;
+    line-height: 1.3;
+    font-family: 'Source Sans Pro', sans-serif;
+    cursor: pointer;
+    margin-left: -0.9em;
+}
+
 #progress {
     width: 0;
     height: 5px;
@@ -270,6 +298,16 @@ figure > pre {
 
 .katex-display, .eleventy-plugin-youtube-embed {
     margin: 32px auto;
+}
+
+.katex-display {
+    text-align: center;
+}
+
+.katex-display > .katex {
+    display: inline-block;
+    text-align: left;
+    line-height: 1.5;
 }
 
 .katex-inline > .katex {
