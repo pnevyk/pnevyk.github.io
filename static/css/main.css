@@ -29,7 +29,7 @@ body {
     color: var(--text-color);
     background-color: var(--darker);
     font-family: 'Quicksand', sans-serif;
-    font-size: 115%;
+    font-size: 1.15em;
     letter-spacing: 0.07rem;
     line-height: 1.7;
     scroll-behavior: smooth;
@@ -106,7 +106,7 @@ figure {
 }
 
 figcaption > p {
-    font-size: 80%;
+    font-size: 0.8em;
     text-align: center;
     hyphens: none;
 }
@@ -140,6 +140,7 @@ p > code, a > code, li > code {
     padding: 2px 5px;
     border-radius: 5px;
     font-family: 'Quicksand', sans-serif;
+    font-size: 1em;
 }
 
 aside.warning > p > code {
@@ -193,7 +194,7 @@ footer p {
 
 .metadata {
     color: var(--opaque);
-    font-size: 80%;
+    font-size: 0.8em;
     font-style: italic;
 }
 
@@ -311,7 +312,7 @@ figure > pre {
 }
 
 .katex-inline > .katex {
-    font-size: 115%;
+    font-size: 1.15em;
 }
 
 @media (prefers-color-scheme: light) {
