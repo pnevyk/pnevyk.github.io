@@ -159,7 +159,7 @@ This is much simpler than if we needed to manipulate a graph instance itself.
 The main complication would be restoring the graph to its original form after removing a vertex,
 where you would also need to restore all edges that led to that vertex.
 Producing the graph and managing the removed sets is sufficiently fast.</p>
-<aside class="note"><h3>By the way</h3><div><p>The strategy for <code>Vec</code> in proptest uses reverse approach for keeping track of still-present elements.
+<aside class="note"><h3>by the way&hellip;</h3><div><p>The strategy for <code>Vec</code> in proptest uses reverse approach for keeping track of still-present elements.
 It <a href="https://github.com/proptest-rs/proptest/blob/0b2628c6ab74f6b2602c32532dea9909188f2910/proptest/src/collection.rs#L546">has</a> <code>included_elements</code> field which is a bit set.
 Initially, all bits in it are set to true.
 During shrinking, those corresponding to “removed” elements are switched to false.</p>
