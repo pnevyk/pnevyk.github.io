@@ -4,7 +4,7 @@
  <meta charset="UTF-8">
  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
  <title>The bytes // they want you</title>
- <meta name="description" content="@pnevyk's words about programming">
+ <meta name="description" content="@pnevyk's words on programming">
  <link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" rel="stylesheet">
  <link href="https://unpkg.com/prismjs@1.20.0/themes/prism-okaidia.css" rel="stylesheet" media="(prefers-color-scheme: dark)">
  <link href="https://unpkg.com/prismjs@1.20.0/themes/prism.css" rel="stylesheet" media="(prefers-color-scheme: light)">
@@ -16,10 +16,9 @@
  
 </head>
 <body lang="en">
- <div id="content">
  <header>
  <h1><a class="title" href="/">The bytes // they want you</a></h1>
- <p class="subtitle"><a href="https://twitter.com/pnevyk" target="_blank">@pnevyk’s</a> words about programming</p>
+ <p class="subtitle"><a href="https://twitter.com/pnevyk" target="_blank">@pnevyk’s</a> words on programming</p>
  </header>
  <main id="main">
  <div id="progress"></div>
@@ -57,9 +56,9 @@ you might find this article a bit boring and perhaps even know a more efficient 
 But anyway, let’s dive in.</p>
 <details class="toc">
 <summary>Table of contents</summary>
-<nav class="table-of-contents"><ul><li><a href="#tl%3Bdr"> TL;DR</a></li><li><a href="#introduction-and-context"> Introduction and context</a></li><li><a href="#setting-up-our-scenario"> Setting up our scenario</a></li><li><a href="#desired-goal"> Desired goal</a></li><li><a href="#first-attempt"> First attempt</a></li><li><a href="#interior-mutability"> Interior mutability</a></li><li><a href="#shared-ownership"> Shared ownership</a></li><li><a href="#short-recap"> Short recap</a></li><li><a href="#writing-queries"> Writing queries</a></li><li><a href="#conclusion"> Conclusion</a></li></ul></nav></details>
+<nav class="table-of-contents"><ul><li><a href="#tl%3Bdr">TL;DR </a></li><li><a href="#introduction-and-context">Introduction and context </a></li><li><a href="#setting-up-our-scenario">Setting up our scenario </a></li><li><a href="#desired-goal">Desired goal </a></li><li><a href="#first-attempt">First attempt </a></li><li><a href="#interior-mutability">Interior mutability </a></li><li><a href="#shared-ownership">Shared ownership </a></li><li><a href="#short-recap">Short recap </a></li><li><a href="#writing-queries">Writing queries </a></li><li><a href="#conclusion">Conclusion </a></li></ul></nav></details>
 <hr>
-<h2 id="tl%3Bdr"><a class="header-anchor" href="#tl%3Bdr">&sect;</a> TL;DR</h2>
+<h2 id="tl%3Bdr">TL;DR <a class="header-anchor" href="#tl%3Bdr">#</a></h2>
 <p>This is quite a long post.
 Thus I am going to summarize it here,
 and if you remain interested I will be more than happy if you continue reading.</p>
@@ -74,7 +73,7 @@ The third section further talks about the desired API of our system.
 Next three sections discuss individual topics: dynamic typing, interior mutability and shared ownership.
 Before conclusion, some interesting facts about a secret-for-now poem are revealed using implemented queries.</p>
 <hr>
-<h2 id="introduction-and-context"><a class="header-anchor" href="#introduction-and-context">&sect;</a> Introduction and context</h2>
+<h2 id="introduction-and-context">Introduction and context <a class="header-anchor" href="#introduction-and-context">#</a></h2>
 <p>We can split the phrase “query system” into two parts – “query” and “system”.
 The <strong>system</strong> (or <strong>database</strong>) encapsulates some underlying data in a form specific to given application
 and it provides a way how to make <strong>queries</strong> to these data to obtain some high-level information.
@@ -108,8 +107,8 @@ Structuring the codebase in such queries makes things much more simple.</p>
 then take a look at <a href="https://github.com/salsa-rs/salsa">salsa</a>.
 I also do recommend the talk <em>Responsive compilers</em> by Niko Matsakis,
 where he explains (among others) this approach and how it is used within Rust compiler.</p>
-<div id="N6b44kMS6OM" class="eleventy-plugin-youtube-embed"style="position:relative;width:100%;padding-top: 56.25%;"><iframe style="position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;" width="100%" height="100%" frameborder="0" src="https://www.youtube-nocookie.com/embed/N6b44kMS6OM" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
-<h2 id="setting-up-our-scenario"><a class="header-anchor" href="#setting-up-our-scenario">&sect;</a> Setting up our scenario</h2>
+<div class="eleventy-plugin-youtube-embed-wrapper"><div id="N6b44kMS6OM" class="eleventy-plugin-youtube-embed"style="position:relative;width:100%;padding-top: 56.25%;"><iframe style="position:absolute;top:0;right:0;bottom:0;left:0;width:100%;height:100%;" width="100%" height="100%" frameborder="0" src="https://www.youtube-nocookie.com/embed/N6b44kMS6OM" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div></div>
+<h2 id="setting-up-our-scenario">Setting up our scenario <a class="header-anchor" href="#setting-up-our-scenario">#</a></h2>
 <p>For not being lost in a sea of abstractness, we need a simple yet interesting example.
 So we will do some analysis on a text.
 And for the text, let’s grab an <em>obvious</em> choice – <em>The Raven</em> by Edgar Allan Poe.</p>
@@ -129,7 +128,7 @@ We certainly want to support this requirement.</p>
 <p>and load it with a few lines of Rust.</p>
 <pre class="language-rust"><code class="language-rust"><span class="token keyword">use</span> <span class="token namespace">std<span class="token punctuation">::</span></span>env<span class="token punctuation">;</span><br><span class="token keyword">use</span> <span class="token namespace">std<span class="token punctuation">::</span>fs<span class="token punctuation">::</span></span><span class="token class-name">File</span><span class="token punctuation">;</span><br><span class="token keyword">use</span> <span class="token namespace">std<span class="token punctuation">::</span>io<span class="token punctuation">::</span>prelude<span class="token punctuation">::</span></span><span class="token operator">*</span><span class="token punctuation">;</span><br><br><span class="token keyword">fn</span> <span class="token function-definition function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    <span class="token comment">// The file can be specified as the first argument of our program</span><br>    <span class="token keyword">let</span> filename <span class="token operator">=</span> <span class="token keyword">match</span> <span class="token namespace">env<span class="token punctuation">::</span></span><span class="token function">args</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">nth</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>        <span class="token class-name">Some</span><span class="token punctuation">(</span>filename<span class="token punctuation">)</span> <span class="token operator">=></span> filename<span class="token punctuation">,</span><br>        <span class="token class-name">None</span> <span class="token operator">=></span> <span class="token macro property">panic!</span><span class="token punctuation">(</span><span class="token string">"provide a filename as the first argument"</span><span class="token punctuation">)</span><span class="token punctuation">,</span><br>    <span class="token punctuation">}</span><span class="token punctuation">;</span><br><br>    <span class="token keyword">let</span> <span class="token keyword">mut</span> file <span class="token operator">=</span> <span class="token class-name">File</span><span class="token punctuation">::</span><span class="token function">open</span><span class="token punctuation">(</span>filename<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">expect</span><span class="token punctuation">(</span><span class="token string">"file does not exist"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>    <span class="token keyword">let</span> <span class="token keyword">mut</span> text <span class="token operator">=</span> <span class="token class-name">String</span><span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>    file<span class="token punctuation">.</span><span class="token function">read_to_string</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">mut</span> text<span class="token punctuation">)</span><br>        <span class="token punctuation">.</span><span class="token function">expect</span><span class="token punctuation">(</span><span class="token string">"an error during reading the file"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>    <span class="token macro property">print!</span><span class="token punctuation">(</span><span class="token string">"{}"</span><span class="token punctuation">,</span> text<span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span></code></pre>
 <p>Now, run the program using <code>cargo run -- raven.txt</code> and enjoy the art for a while.</p>
-<h2 id="desired-goal"><a class="header-anchor" href="#desired-goal">&sect;</a> Desired goal</h2>
+<h2 id="desired-goal">Desired goal <a class="header-anchor" href="#desired-goal">#</a></h2>
 <p>We will make our structure a bit more flexible than the code introduced in the beginning of this post.
 Instead of defining a method for every and each query,
 our system will allow any query represented by a type that implements a <code>Query</code> trait of ours.</p>
@@ -145,7 +144,7 @@ it’s still not a representative of short <a href="https://en.wikipedia.org/wik
 To satisfy one of the advantages of query system pattern, the queries will be cached so they are computed <strong>at most once</strong>.
 There is one caveat though.
 We would like to hide the memoization as an implementation detail and so making the query should take <strong>immutable</strong> reference.</p>
-<h2 id="first-attempt"><a class="header-anchor" href="#first-attempt">&sect;</a> First attempt</h2>
+<h2 id="first-attempt">First attempt <a class="header-anchor" href="#first-attempt">#</a></h2>
 <p>A straightforward idea for memoization is to maintain a cache in the form of <a href="https://doc.rust-lang.org/stable/std/collections/struct.HashMap.html"><code>HashMap</code></a>.
 Since we want to store queries of <strong>any</strong> type (as long as they implement a trait we require),
 we need to exploit <a href="https://doc.rust-lang.org/stable/std/any/index.html">reflection capabilities</a> of Rust.
@@ -181,7 +180,7 @@ We store it into our hash map, but the lifetime is <strong>not</strong> encoded 
 What could then guarantee whether the data behind the lifetime <code>'a</code> is still valid when we retrieve the value from the cache some time later?
 <em>Nothing</em>.
 And that’s why it’s not possible to do it.</p>
-<h2 id="interior-mutability"><a class="header-anchor" href="#interior-mutability">&sect;</a> Interior mutability</h2>
+<h2 id="interior-mutability">Interior mutability <a class="header-anchor" href="#interior-mutability">#</a></h2>
 <p>What we need is so-called <a href="https://doc.rust-lang.org/stable/std/cell/index.html">interior mutability</a>.
 It will allow us to insert values into the hash map while still borrowing <code>&amp;self</code> immutably.
 Recall that one of the most important rules in Rust enforced by the compiler is that any value can have only one of the following (but not both):</p>
@@ -243,7 +242,7 @@ If we put the initialization call as the argument of <code>insert</code>, callin
 <p>At this point, it seems that there is no way for returning a <code>&amp;Q</code> reference while using <code>RefCell</code> semantics.
 And honestly, I don’t know any indeed.
 Hence we need an alternative.</p>
-<h2 id="shared-ownership"><a class="header-anchor" href="#shared-ownership">&sect;</a> Shared ownership</h2>
+<h2 id="shared-ownership">Shared ownership <a class="header-anchor" href="#shared-ownership">#</a></h2>
 <p>A straightforward way is imposing the <code>Clone</code> requirement for <code>Query</code> trait and cloning the query value every time.
 This might not be that bad if our queries are not large in regards of space and only need to be cached due to their computational cost.
 Fortunately, there is a bit smarter way of achieving (sort of) what we want.
@@ -280,7 +279,7 @@ Photo by Nicolas Tissot on Unsplash.
 "><figcaption><p>A moderately populated city in France celebrating that we compiled our program without errors.
 Photo by <a href="https://unsplash.com/@nft">Nicolas Tissot</a> on <a href="https://unsplash.com/photos/2XSpU-6siwk">Unsplash</a>.</p>
 </figcaption></figure>
-<h2 id="short-recap"><a class="header-anchor" href="#short-recap">&sect;</a> Short recap</h2>
+<h2 id="short-recap">Short recap <a class="header-anchor" href="#short-recap">#</a></h2>
 <p>So what we have so far?
 We have a <code>System</code> structure that provides us with <code>query</code> method to be used for querying the underlying string.
 It takes immutable reference to the system as querying is immutable computation in our eyes.</p>
@@ -293,7 +292,7 @@ we employ interior mutability technique provided by <code>RefCell</code>.</p>
 We use this approach to hide implementation details.
 So far, the implementation detail is that we hold the value inside <code>Rc</code> smart pointer,
 because we are forced to return an owned value from type system point of view.</p>
-<h2 id="writing-queries"><a class="header-anchor" href="#writing-queries">&sect;</a> Writing queries</h2>
+<h2 id="writing-queries">Writing queries <a class="header-anchor" href="#writing-queries">#</a></h2>
 <p>Now is finally the time when we start to write our actual queries.
 Let’s use those mentioned when we introduced the <em>The Raven</em> example:</p>
 <ul>
@@ -329,7 +328,7 @@ They just lead to a <em>stack overflow</em> crash.</p>
 <em>The Raven</em> is actually a carefully structured poem with regular stanzas, each of them having exactly six verses.
 In the end, that’s how poetry was written at those times.
 But a nice thing is that our statistics do not contradict the numbers presented on <a href="https://en.wikipedia.org/wiki/The_Raven#Poetic_structure">Wikipedia</a>.</p>
-<h2 id="conclusion"><a class="header-anchor" href="#conclusion">&sect;</a> Conclusion</h2>
+<h2 id="conclusion">Conclusion <a class="header-anchor" href="#conclusion">#</a></h2>
 <p>At this point, we have something that works.
 On the way, we introduced several simplifications – in particular, we are limited to a single thread and there is no way how queries can be parametrized.
 We may look at these features in the future.
@@ -365,7 +364,6 @@ But there is more…</p>
  <a href="https://twitter.com/pnevyk" target="_blank"><i class="fa fa-twitter"></i></a>
  </div>
  </footer>
- </div>
 
  <script src="/static/js/main.js"></script>
  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.js" integrity="sha384-g7c+Jr9ZivxKLnZTDUhnkOnsh30B4H0rpLUpJ4jAIKs4fnJI+sEnkvrMWph2EDg4" crossorigin="anonymous"></script>

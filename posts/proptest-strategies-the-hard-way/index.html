@@ -4,7 +4,7 @@
  <meta charset="UTF-8">
  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
  <title>The bytes // they want you</title>
- <meta name="description" content="@pnevyk's words about programming">
+ <meta name="description" content="@pnevyk's words on programming">
  <link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" rel="stylesheet">
  <link href="https://unpkg.com/prismjs@1.20.0/themes/prism-okaidia.css" rel="stylesheet" media="(prefers-color-scheme: dark)">
  <link href="https://unpkg.com/prismjs@1.20.0/themes/prism.css" rel="stylesheet" media="(prefers-color-scheme: light)">
@@ -18,10 +18,9 @@
  
 </head>
 <body lang="en">
- <div id="content">
  <header>
  <h1><a class="title" href="/">The bytes // they want you</a></h1>
- <p class="subtitle"><a href="https://twitter.com/pnevyk" target="_blank">@pnevyk’s</a> words about programming</p>
+ <p class="subtitle"><a href="https://twitter.com/pnevyk" target="_blank">@pnevyk’s</a> words on programming</p>
  </header>
  <main id="main">
  <div id="progress"></div>
@@ -29,7 +28,7 @@
  <h1>Proptest strategies the hard way</h1>
  <div class="metadata">
  <span>Published on <em><time datetime="2023-06-06">June 6, 2023</time></em></span>
- <span>About <em>20 min</em> reading time</span>
+ <span>About <em>21 min</em> reading time</span>
  </div>
  <div class="metadata">
  
@@ -62,8 +61,8 @@ If you can, stick to these simpler approaches,
 and use manual implementation (the topic of this post) only when it brings considerable benefits.</p>
 </aside><details class="toc">
 <summary>Table of contents</summary>
-<nav class="table-of-contents"><ul><li><a href="#strategy-and-valuetree-traits"> Strategy and ValueTree traits</a></li><li><a href="#shrinking-as-a-state-machine"> Shrinking as a state machine</a></li><li><a href="#internal-representation"> Internal representation</a><ul><li><a href="#graphs"> Graphs</a></li><li><a href="#matrices"> Matrices</a></li></ul></li><li><a href="#generation-implementation"> Generation implementation</a><ul><li><a href="#floats"> Floats</a></li><li><a href="#characters"> Characters</a></li><li><a href="#strings"> Strings</a></li><li><a href="#hashmaps"> HashMaps</a></li><li><a href="#summary"> Summary</a></li></ul></li><li><a href="#shrinking-implementation"> Shrinking implementation</a></li><li><a href="#miscellaneous-remarks"> Miscellaneous remarks</a></li><li><a href="#conclusion"> Conclusion</a></li></ul></nav></details>
-<h2 id="strategy-and-valuetree-traits"><a class="header-anchor" href="#strategy-and-valuetree-traits">&sect;</a> <code>Strategy</code> and <code>ValueTree</code> traits</h2>
+<nav class="table-of-contents"><ul><li><a href="#strategy-and-valuetree-traits">Strategy and ValueTree traits </a></li><li><a href="#shrinking-as-a-state-machine">Shrinking as a state machine </a></li><li><a href="#internal-representation">Internal representation </a><ul><li><a href="#graphs">Graphs </a></li><li><a href="#matrices">Matrices </a></li></ul></li><li><a href="#generation-implementation">Generation implementation </a><ul><li><a href="#floats">Floats </a></li><li><a href="#characters">Characters </a></li><li><a href="#strings">Strings </a></li><li><a href="#hashmaps">HashMaps </a></li><li><a href="#summary">Summary </a></li></ul></li><li><a href="#shrinking-implementation">Shrinking implementation </a></li><li><a href="#miscellaneous-remarks">Miscellaneous remarks </a></li><li><a href="#conclusion">Conclusion </a></li></ul></nav></details>
+<h2 id="strategy-and-valuetree-traits"><code>Strategy</code> and <code>ValueTree</code> traits <a class="header-anchor" href="#strategy-and-valuetree-traits">#</a></h2>
 <p>The core for generating data in proptest lies in
 <a href="https://docs.rs/proptest/latest/proptest/strategy/trait.Strategy.html"><code>Strategy</code></a> and
 <a href="https://docs.rs/proptest/latest/proptest/strategy/trait.ValueTree.html"><code>ValueTree</code></a> traits.
@@ -75,7 +74,10 @@ and use manual implementation (the topic of this post) only when it brings consi
 where you can have only a single implementation of <a href="https://docs.rs/quickcheck/latest/quickcheck/trait.Arbitrary.html"><code>Arbitrary</code></a> for a type,
 which specifies how a value is generated <em>and simplified</em>.
 In proptest, you can implement multiple different strategies for a type,
-which will share the shrinking implementation defined by the value tree<sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a></sup>.</p>
+which will share the shrinking implementation defined by the value tree<sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a><span class="footnote-content">
+Technically, you can also have multiple <code>ValueTree</code> implementations for a type.
+But I am not sure where it would be useful in practice.
+Apart from special adapters like <a href="https://docs.rs/proptest/latest/proptest/strategy/struct.NoShrink.html"><code>NoShrink</code></a>.</span></sup>.</p>
 <figure><img src="/static/img/multiple-strategies.png" alt="There can be multiple strategies generating the same value tree.
 "><figcaption><p>There can be multiple strategies generating the same value tree.</p>
 </figcaption></figure>
@@ -84,7 +86,7 @@ which will share the shrinking implementation defined by the value tree<sup clas
 <p>Note that there is also the <a href="https://docs.rs/proptest/latest/proptest/arbitrary/trait.Arbitrary.html"><code>Arbitrary</code></a> trait, but it is not fundamental for generating and shrinking the values.
 It is optional.
 If implemented, it represents a <em>canonical</em> strategy for a type and enables using <code>any::&lt;MyType&gt;()</code> (and relatives) for producing a strategy.</p>
-<h2 id="shrinking-as-a-state-machine"><a class="header-anchor" href="#shrinking-as-a-state-machine">&sect;</a> Shrinking as a state machine</h2>
+<h2 id="shrinking-as-a-state-machine">Shrinking as a state machine <a class="header-anchor" href="#shrinking-as-a-state-machine">#</a></h2>
 <p>In the trait definition of <code>ValueTree</code> there are <code>simplify</code> and <code>complicate</code> methods, both taking <code>&amp;mut self</code>.
 This might be surprising at first – why would we want to complicate things? Aren’t they complicated enough?</p>
 <p>The reason is that a value tree is actually some form of a <em>state machine</em> that is used for searching over the input space of the type.
@@ -113,24 +115,27 @@ Binary search is an efficient way for achieving this goal
 <p>The binary search analogy is great for understanding the simplification process in proptest.
 However, for more complicated types (like graphs, but even vectors), the values on a “complexity scale” between failing and trivial may not lie on a straight line.
 Imagine a vector <em>[1, 2, 3]</em>. Either of the elements can be removed resulting in <em>[2, 3]</em>, <em>[1, 3]</em> or <em>[1, 2]</em>, respectively, and all these simplifications are valid options.
-In such situations, you could think of it more as a <a href="https://en.wikipedia.org/wiki/Lattice_(order)">lattice</a><sup class="footnote-ref"><a href="#fn2" id="fnref2">[2]</a></sup>, as illustrated in the following picture.</p>
+In such situations, you could think of it more as a <a href="https://en.wikipedia.org/wiki/Lattice_(order)">lattice</a><sup class="footnote-ref"><a href="#fn2" id="fnref2">[2]</a><span class="footnote-content">Finally I can use this term outside of the university!</span></sup>, as illustrated in the following picture.</p>
 <figure><img src="/static/img/simplification-lattice.png" alt="An illustration of a more complicated simplification process.
 "><figcaption><p>An illustration of a more complicated simplification process.</p>
 </figcaption></figure>
 <p>During simplification, you take one branch and test the value.
 If it still causes a failure, you continue going down.
 Once you reach a value that doesn’t fail, you take a step back and try the next branch.
-When you tried all branches from a value and none of them caused a failure, you got to <em>a</em> minimal reproducer<sup class="footnote-ref"><a href="#fn3" id="fnref3">[3]</a></sup>.</p>
+When you tried all branches from a value and none of them caused a failure, you got to <em>a</em> minimal reproducer<sup class="footnote-ref"><a href="#fn3" id="fnref3">[3]</a><span class="footnote-content">This claim is not really true in general.
+Possibly, there could exist a branch from one of the value’s ancestors which could lead to an even smaller reproducer but was not tried.
+If this is true for your type, consider making the extra effort to make the simplification traverse all possible paths so you are guaranteed to get an actually minimal reproducer.</span></sup>.</p>
 <p>Now I drew the illustration with values that have multiple “parents”.
 This represents a situation where you can get to a value in different ways.
 In a vector with at least two elements, you can get to an empty vector by removing the elements in different orders.
 But in the implementation of <code>ValueTree</code>, you have to make sure that calling <code>complicate</code> will get you back to the parent on which you previously called <code>simplify</code>, not an arbitrary parent.
 Otherwise, you could introduce cycles and your shrinking process might never terminate.</p>
-<h2 id="internal-representation"><a class="header-anchor" href="#internal-representation">&sect;</a> Internal representation</h2>
+<h2 id="internal-representation">Internal representation <a class="header-anchor" href="#internal-representation">#</a></h2>
 <p>The design of proptest, in particular the existence of <code>ValueTree</code> encapsulation of the generated value,
 allows thinking about how to represent the value under the hood.
 Because in more complicated cases, it may be valuable to choose a representation that is not the actual type it represents.
-Why? Because we must not forget that we will eventually be asked to simplify the values of our type<sup class="footnote-ref"><a href="#fn4" id="fnref4">[4]</a></sup>,
+Why? Because we must not forget that we will eventually be asked to simplify the values of our type<sup class="footnote-ref"><a href="#fn4" id="fnref4">[4]</a><span class="footnote-content">
+Unless you are the type of a programmer who <a href="https://github.com/rust-lang/regex/discussions/994#discussioncomment-5948689">writes code without bugs</a>.</span></sup>,
 and if our type is complex, it may not be an easy task.</p>
 <p>So we want to generate value trees that satisfy the following goals:</p>
 <ol>
@@ -142,7 +147,7 @@ and if our type is complex, it may not be an easy task.</p>
 "><figcaption><p>The representation must be fast to convert to the value itself as well as convenient to manipulate during the shrinking process. These two requirements might be in tension.</p>
 </figcaption></figure>
 <p>Let’s see some examples…</p>
-<h3 id="graphs"><a class="header-anchor" href="#graphs">&sect;</a> Graphs</h3>
+<h3 id="graphs">Graphs <a class="header-anchor" href="#graphs">#</a></h3>
 <p>In gryf, the <a href="https://github.com/pnevyk/gryf/blob/4518875bcaaa296b5ccfa4b0e6943a9fb5dfd455/src/infra/proptest.rs#L41-L48">value tree</a> is represented by (simplified)</p>
 <ul>
 <li><code>vertices: Vec&lt;V&gt;</code> and <code>edges: Vec&lt;(usize, usize, E)&gt;</code>‚</li>
@@ -170,7 +175,7 @@ I am willing to sacrifice some efficiency during shrinking if that means faster 
 Life is happy most of the time after all, <a href="https://i.imgflip.com/1xqcvl.jpg">isn’t it</a>?</p>
 <p>But there is a compromise, the bit set could be initialized lazily when a first bit is set to false.
 This would bring the good from both worlds.</p>
-</div></aside><h3 id="matrices"><a class="header-anchor" href="#matrices">&sect;</a> Matrices</h3>
+</div></aside><h3 id="matrices">Matrices <a class="header-anchor" href="#matrices">#</a></h3>
 <p>The value tree for a matrix type could be represented by</p>
 <ul>
 <li><code>elements: Vec&lt;T&gt;</code> (a linear representation of the matrix, which is a <a href="https://en.wikipedia.org/wiki/Row-_and_column-major_order">common technique</a>, having length of <em>n_rows</em> x <em>n_cols</em>),</li>
@@ -182,14 +187,14 @@ and adding the element to the matrix only if the row or column are not in <code>
 <p>Although it would be somewhat straightforward to actually remove a row from the elements vector using <a href="https://doc.rust-lang.org/std/vec/struct.Vec.html#method.drain"><code>Vec::drain</code></a>,
 there is no such a nice way to remove a column (which is scattered over the vector),
 and adding both back during complication would not be fun either, and likely less efficient in terms of the whole process (don’t quote me on that).</p>
-<h2 id="generation-implementation"><a class="header-anchor" href="#generation-implementation">&sect;</a> Generation implementation</h2>
+<h2 id="generation-implementation">Generation implementation <a class="header-anchor" href="#generation-implementation">#</a></h2>
 <p>This could be a one-paragraph section:
 Use the <a href="https://docs.rs/rand/latest/rand/trait.Rng.html"><code>rand::Rng</code></a> generator
 accessible via <a href="https://docs.rs/proptest/latest/proptest/test_runner/struct.TestRunner.html#method.rng"><code>TestRunner::rng</code></a>
 to generate the internal representation of your choice and return it.
 Nevertheless, let’s see how are generators implemented for some primitives and standard types in proptest itself.</p>
 <p>If you are not interested in implementation details, you might want to skip to the <a href="#summary">summary</a> of general techniques.</p>
-<h3 id="floats"><a class="header-anchor" href="#floats">&sect;</a> Floats</h3>
+<h3 id="floats">Floats <a class="header-anchor" href="#floats">#</a></h3>
 <p>The source for generating a float is <a href="https://github.com/proptest-rs/proptest/blob/eeb91cfb13408d10b9a475d2758fc81d6106551a/proptest/src/num.rs#L608-L675">here</a>.
 The strategy holds the set of allowed float types (positive, normal, subnormal, infinite, …).
 So it is possible to customize the strategy to produce values from desired categories.
@@ -215,7 +220,7 @@ Note however that you lose the shrinker for the value unless you store the value
 <li>Refining a random value according to the requirements specified by the strategy parameters.</li>
 <li>Using a different representation during generation (<code>u32</code> or <code>u64</code>). Although this representation is converted into the target type eagerly when constructing the value tree. It’s because in this case, it makes sense to do the binary search directly on the target type.</li>
 </ol>
-<h3 id="characters"><a class="header-anchor" href="#characters">&sect;</a> Characters</h3>
+<h3 id="characters">Characters <a class="header-anchor" href="#characters">#</a></h3>
 <p>The core of generating a <code>char</code> is <a href="https://github.com/proptest-rs/proptest/blob/eeb91cfb13408d10b9a475d2758fc81d6106551a/proptest/src/char.rs#L103-L145">here</a>. It is a function that takes</p>
 <ul>
 <li>random values generator,</li>
@@ -241,7 +246,7 @@ In that case, the code tries to generate a new random value.</p>
 <li>Bias towards supposed edge cases. This arguably increases the chance of finding a failing input, but it must not be excessive, because that would artificially narrow the search space.</li>
 <li>Handling invalid values produced by the random generator. The strategy should not fail in such cases if it can try harder or if there is a way how to produce at least something.</li>
 </ol>
-<h3 id="strings"><a class="header-anchor" href="#strings">&sect;</a> Strings</h3>
+<h3 id="strings">Strings <a class="header-anchor" href="#strings">#</a></h3>
 <p>String generation in proptest is interesting in that the shape of the strings is constrained by a regular expression.
 That is, the strategy represented by <code>"[0-9]{4}-[0-9]{2}-[0-9]{2}"</code> will only generate strings that contain 4-digit, 2-digit and 2-digit numbers separated by hyphen.</p>
 <p>Under the hood, the strategy first parses the regular expression into an intermediate representation (<code>Hir</code>) using the <a href="https://crates.io/crates/regex-syntax">regex-syntax</a> crate.
@@ -250,7 +255,7 @@ and returns a strategy that generates characters or bytes based on the expressio
 For example,</p>
 <ul>
 <li><code>Literal('A')</code> will return <code>Just('A')</code>, where <a href="https://docs.rs/proptest/latest/proptest/strategy/struct.Just.html"><code>Just</code></a> is a strategy which always produces a single given value and never shrinks, or</li>
-<li><code>Class(Digit)</code><sup class="footnote-ref"><a href="#fn5" id="fnref5">[5]</a></sup> will return a strategy that picks a random digit character from given <code>char</code> ranges using the approach described earlier.</li>
+<li><code>Class(Digit)</code><sup class="footnote-ref"><a href="#fn5" id="fnref5">[5]</a><span class="footnote-content"><code>Digit</code> is here used for illustration purposes only. All character classes are already converted into their corresponding <code>char</code> ranges in Hir.</span></sup> will return a strategy that picks a random digit character from given <code>char</code> ranges using the approach described earlier.</li>
 </ul>
 <p>Often it’s a composition of nested strategies.
 For example,</p>
@@ -266,7 +271,7 @@ Another example could be generating HTTP requests specified by an <a href="https
 <ol>
 <li>A creative, convenient way to communicate to the strategy how to produce complex values with desired constraints.</li>
 </ol>
-<h3 id="hashmaps"><a class="header-anchor" href="#hashmaps">&sect;</a> HashMaps</h3>
+<h3 id="hashmaps">HashMaps <a class="header-anchor" href="#hashmaps">#</a></h3>
 <p>Before looking at the strategy for <code>HashMap</code>, we have to first see the <a href="https://github.com/proptest-rs/proptest/blob/eeb91cfb13408d10b9a475d2758fc81d6106551a/proptest/src/collection.rs#L552-L566">strategy</a> for generating <code>Vec</code>s. Fortunately, it is quite simple:</p>
 <pre class="language-rust"><code class="language-rust"><span class="token keyword">let</span> <span class="token punctuation">(</span>start<span class="token punctuation">,</span> end<span class="token punctuation">)</span> <span class="token operator">=</span> <span class="token keyword">self</span><span class="token punctuation">.</span>size<span class="token punctuation">.</span><span class="token function">start_end_incl</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token keyword">let</span> max_size <span class="token operator">=</span> <span class="token function">sample_uniform_incl</span><span class="token punctuation">(</span>runner<span class="token punctuation">,</span> start<span class="token punctuation">,</span> end<span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token keyword">let</span> <span class="token keyword">mut</span> elements <span class="token operator">=</span> <span class="token class-name">Vec</span><span class="token punctuation">::</span><span class="token function">with_capacity</span><span class="token punctuation">(</span>max_size<span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token keyword">while</span> elements<span class="token punctuation">.</span><span class="token function">len</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> max_size <span class="token punctuation">{</span><br>    elements<span class="token punctuation">.</span><span class="token function">push</span><span class="token punctuation">(</span><span class="token keyword">self</span><span class="token punctuation">.</span>element<span class="token punctuation">.</span><span class="token function">new_tree</span><span class="token punctuation">(</span>runner<span class="token punctuation">)</span><span class="token operator">?</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span></code></pre>
 <p>First, it samples the target size from the range provided by the user and then it fills the vector with elements produced by the strategy for elements (also provided by the user).</p>
@@ -275,7 +280,7 @@ but the idea is straightforward: Generate <code>Vec&lt;(K, V)&gt;</code> and <co
 <p>This example only shows what we have already seen:
 using other strategies as building blocks and using a different representation during the generation.
 But here it is even more apparent.</p>
-<h3 id="summary"><a class="header-anchor" href="#summary">&sect;</a> Summary</h3>
+<h3 id="summary">Summary <a class="header-anchor" href="#summary">#</a></h3>
 <p>Along with generation logic that is inherently specific to your case, consider also these general techniques:</p>
 <ol>
 <li>Use other strategies as building blocks.</li>
@@ -285,7 +290,7 @@ But here it is even more apparent.</p>
 <li>Handle invalid values produced by the random generator. Try harder or fall back to producing at least something.</li>
 <li>Provide a creative, convenient way to communicate to the strategy how to produce complex values with desired constraints.</li>
 </ol>
-<h2 id="shrinking-implementation"><a class="header-anchor" href="#shrinking-implementation">&sect;</a> Shrinking implementation</h2>
+<h2 id="shrinking-implementation">Shrinking implementation <a class="header-anchor" href="#shrinking-implementation">#</a></h2>
 <p>Shrinking is the more complicated task from the two.
 This is where choosing appropriate <a href="#internal-representation">internal representation</a> matters.
 But there are also standard approaches that one can use for more complex cases.</p>
@@ -339,7 +344,7 @@ short of writing our own custom value tree, which we should probably do at some 
 <figure><img src="/static/img/structure-elements.png" alt="There may be preferred simplification order between the "dimensions" of the type.
 "><figcaption><p>There may be preferred simplification order between the “dimensions” of the type.</p>
 </figcaption></figure>
-<h2 id="miscellaneous-remarks"><a class="header-anchor" href="#miscellaneous-remarks">&sect;</a> Miscellaneous remarks</h2>
+<h2 id="miscellaneous-remarks">Miscellaneous remarks <a class="header-anchor" href="#miscellaneous-remarks">#</a></h2>
 <p>Putting more effort into making the shrinking process capable will pay off when one runs into test failures.
 Minimizing the reproducer is an important part of property-based testing and fixing a bug with an example that is as small as possible is definitely easier than with a complicated monster.</p>
 <p>Consider providing a specialized <code>Debug</code> implementation to aid diagnosis of the failure.
@@ -350,7 +355,7 @@ Since the manual implementation of a strategy gives you full control over the ty
 you can add setters taking <code>self</code> and returning the strategy with the parameter set accordingly.
 In combination with <code>fn arb_foo() -&gt; FooStrategy</code>, this allows to parametrize the strategy like this:</p>
 <pre class="language-rust"><code class="language-rust"><span class="token macro property">proptest!</span> <span class="token punctuation">{</span><br>    <span class="token attribute attr-name">#[test]</span><br>    <span class="token keyword">fn</span> <span class="token function-definition function">proptest</span><span class="token punctuation">(</span><br>        <span class="token comment">//                 vertices         edges</span><br>        graph <span class="token keyword">in</span> <span class="token function">arb_graph</span><span class="token punctuation">(</span><span class="token function">any</span><span class="token punctuation">::</span><span class="token operator">&lt;</span><span class="token class-name">String</span><span class="token operator">></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token function">any</span><span class="token punctuation">::</span><span class="token operator">&lt;</span><span class="token keyword">u16</span><span class="token operator">></span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><br>            <span class="token punctuation">.</span><span class="token function">max_size</span><span class="token punctuation">(</span><span class="token number">100</span><span class="token punctuation">)</span><br>            <span class="token punctuation">.</span><span class="token function">connected</span><span class="token punctuation">(</span><span class="token punctuation">)</span><br>            <span class="token punctuation">.</span><span class="token function">class</span><span class="token punctuation">(</span><span class="token class-name">GraphClass</span><span class="token punctuation">::</span><span class="token class-name">Bipartite</span><span class="token punctuation">)</span><br>    <span class="token punctuation">)</span> <span class="token punctuation">{</span><br>        <span class="token comment">// ...</span><br>    <span class="token punctuation">}</span><br><span class="token punctuation">}</span></code></pre>
-<h2 id="conclusion"><a class="header-anchor" href="#conclusion">&sect;</a> Conclusion</h2>
+<h2 id="conclusion">Conclusion <a class="header-anchor" href="#conclusion">#</a></h2>
 <p>After reading this post, you hopefully have a better idea of how proptest strategies
 work under the hood and know some general techniques on how to implement your own
 manually.</p>
@@ -393,7 +398,6 @@ Unless you are the type of a programmer who <a href="https://github.com/rust-lan
  <a href="https://twitter.com/pnevyk" target="_blank"><i class="fa fa-twitter"></i></a>
  </div>
  </footer>
- </div>
 
  <script src="/static/js/main.js"></script>
  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.js" integrity="sha384-g7c+Jr9ZivxKLnZTDUhnkOnsh30B4H0rpLUpJ4jAIKs4fnJI+sEnkvrMWph2EDg4" crossorigin="anonymous"></script>
