@@ -193,6 +193,18 @@ img {
     margin: auto;
 }
 
+input[type="checkbox"] {
+    width: 0.85em;
+    height: 0.85em;
+    margin-right: 0.5em;
+    accent-color: var(--link-color);
+}
+
+.contains-task-list {
+    font-size: 1.25em;
+    padding-left: 4rem;
+}
+
 ::selection {
     background: var(--link-color);
 }
@@ -296,6 +308,10 @@ aside.warning::before {
     text-align: center;
 }
 
+details > summary {
+    cursor: pointer;
+}
+
 details.toc > summary {
     margin-top: 3.5rem;
     margin-bottom: 1rem;
@@ -303,7 +319,6 @@ details.toc > summary {
     font-weight: bold;
     line-height: 1.3;
     font-family: 'Source Sans Pro', sans-serif;
-    cursor: pointer;
 }
 
 details.toc ul {

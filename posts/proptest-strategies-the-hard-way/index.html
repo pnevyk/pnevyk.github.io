@@ -50,7 +50,7 @@ You can also use <a href="https://altsysrq.github.io/proptest-book/proptest-deri
 All this is useful, but in more complicated cases it makes sense to implement this manually.
 And this post shows how to do that.
 It is based on my experience writing generators for <a href="https://github.com/pnevyk/gryf/blob/main/src/infra/proptest.rs">gryf</a> graph library.</p>
-<figure><img src="/static/img/chess.jpg" alt=""Chess is an abstract strategy game" -- Wikipedia. Photo by Felix Mittermeier on Unsplash
+<figure><img src="/static/img/chess.jpg" style="max-width: 100%" alt=""Chess is an abstract strategy game" -- Wikipedia. Photo by Felix Mittermeier on Unsplash
 "><figcaption><p>“Chess is an abstract strategy game” – Wikipedia. Photo by <a href="https://unsplash.com/@felix_mittermeier">Felix Mittermeier</a> on <a href="https://unsplash.com/photos/nAjil1z3eLk">Unsplash</a></p>
 </figcaption></figure>
 <p>The preliminary for reading this is a basic familiarity with property-based testing in general and proptest crate in particular.
@@ -67,7 +67,7 @@ and use manual implementation (the topic of this post) only when it brings consi
 <a href="https://docs.rs/proptest/latest/proptest/strategy/trait.Strategy.html"><code>Strategy</code></a> and
 <a href="https://docs.rs/proptest/latest/proptest/strategy/trait.ValueTree.html"><code>ValueTree</code></a> traits.
 <code>Strategy</code> knows how to create a <code>ValueTree</code>, which carries the generated value and knows how to simplify it.</p>
-<figure><img src="/static/img/strategy-valuetree.png" alt="Strategy generates a value tree, which carries the generated value and knows how to simplify it.
+<figure><img src="/static/img/strategy-valuetree.png" style="max-width: 100%" alt="Strategy generates a value tree, which carries the generated value and knows how to simplify it.
 "><figcaption><p>Strategy generates a value tree, which carries the generated value and knows how to simplify it.</p>
 </figcaption></figure>
 <p>This is an important difference from <a href="https://crates.io/crates/quickcheck">quickcheck</a> crate,
@@ -78,7 +78,7 @@ which will share the shrinking implementation defined by the value tree<sup clas
 Technically, you can also have multiple <code>ValueTree</code> implementations for a type.
 But I am not sure where it would be useful in practice.
 Apart from special adapters like <a href="https://docs.rs/proptest/latest/proptest/strategy/struct.NoShrink.html"><code>NoShrink</code></a>.</span></sup>.</p>
-<figure><img src="/static/img/multiple-strategies.png" alt="There can be multiple strategies generating the same value tree.
+<figure><img src="/static/img/multiple-strategies.png" style="max-width: 100%" alt="There can be multiple strategies generating the same value tree.
 "><figcaption><p>There can be multiple strategies generating the same value tree.</p>
 </figcaption></figure>
 <p>Let’s see the actual definition of these two traits:</p>
@@ -94,7 +94,7 @@ The state is represented by the current value and some metadata, as we will see 
 The test runner then uses these two actions to converge into a value that is (potentially) simpler than the originally found but still causes the test to fail.
 Thanks to <code>complicate</code>, the state machine can attempt to do larger steps during simplification,
 and (partially) roll back if the value is not failing anymore.</p>
-<figure><img src="/static/img/simplify-complicate.png" alt="Value tree knows not only how to simplify a value, but also how to complicate it.
+<figure><img src="/static/img/simplify-complicate.png" style="max-width: 100%" alt="Value tree knows not only how to simplify a value, but also how to complicate it.
 Using these actions, the test runner tries to converge into a minimal reproducer.
 "><figcaption><p>Value tree knows not only how to simplify a value, but also how to complicate it.
 Using these actions, the test runner tries to converge into a minimal reproducer.</p>
@@ -109,14 +109,14 @@ Your type (most likely) also has a <em>trivial</em> value (i.e., “minimally co
 The goal is to find a value that is <em>as minimal as possible but still failing</em>.
 Binary search is an efficient way for achieving this goal
 (it is for example what <a href="https://git-scm.com/docs/git-bisect">git bisect</a> uses for finding the commit that introduced a bug).</p>
-<figure><img src="/static/img/simplification-line.png" alt="For types whose values have a strict total order, binary search is the most efficient way to find the minimal reproducer.
+<figure><img src="/static/img/simplification-line.png" style="max-width: 100%" alt="For types whose values have a strict total order, binary search is the most efficient way to find the minimal reproducer.
 "><figcaption><p>For types whose values have a strict total order, binary search is the most efficient way to find the minimal reproducer.</p>
 </figcaption></figure>
 <p>The binary search analogy is great for understanding the simplification process in proptest.
 However, for more complicated types (like graphs, but even vectors), the values on a “complexity scale” between failing and trivial may not lie on a straight line.
 Imagine a vector <em>[1, 2, 3]</em>. Either of the elements can be removed resulting in <em>[2, 3]</em>, <em>[1, 3]</em> or <em>[1, 2]</em>, respectively, and all these simplifications are valid options.
 In such situations, you could think of it more as a <a href="https://en.wikipedia.org/wiki/Lattice_(order)">lattice</a><sup class="footnote-ref"><a href="#fn2" id="fnref2">[2]</a><span class="footnote-content">Finally I can use this term outside of the university!</span></sup>, as illustrated in the following picture.</p>
-<figure><img src="/static/img/simplification-lattice.png" alt="An illustration of a more complicated simplification process.
+<figure><img src="/static/img/simplification-lattice.png" style="max-width: 100%" alt="An illustration of a more complicated simplification process.
 "><figcaption><p>An illustration of a more complicated simplification process.</p>
 </figcaption></figure>
 <p>During simplification, you take one branch and test the value.
@@ -143,7 +143,7 @@ and if our type is complex, it may not be an easy task.</p>
 <li>It is reasonably <em>easy</em> to manipulate the value tree during the shrinking process.</li>
 </ol>
 <p>These two might be in tension, so the goal is to find a good balance.</p>
-<figure><img src="/static/img/representation-tension.png" alt="The representation must be fast to convert to the value itself as well as convenient to manipulate during the shrinking process. These two requirements might be in tension.
+<figure><img src="/static/img/representation-tension.png" style="max-width: 100%" alt="The representation must be fast to convert to the value itself as well as convenient to manipulate during the shrinking process. These two requirements might be in tension.
 "><figcaption><p>The representation must be fast to convert to the value itself as well as convenient to manipulate during the shrinking process. These two requirements might be in tension.</p>
 </figcaption></figure>
 <p>Let’s see some examples…</p>
@@ -341,7 +341,7 @@ This is clearly the opposite of what we want. I can’t find any good way around
 short of writing our own custom value tree, which we should probably do at some point.</p>
 <p> — Nalgebra proptest/mod.rs:281</p>
 </blockquote>
-<figure><img src="/static/img/structure-elements.png" alt="There may be preferred simplification order between the "dimensions" of the type.
+<figure><img src="/static/img/structure-elements.png" style="max-width: 100%" alt="There may be preferred simplification order between the "dimensions" of the type.
 "><figcaption><p>There may be preferred simplification order between the “dimensions” of the type.</p>
 </figcaption></figure>
 <h2 id="miscellaneous-remarks">Miscellaneous remarks <a class="header-anchor" href="#miscellaneous-remarks">#</a></h2>
