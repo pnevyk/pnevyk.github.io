@@ -201,8 +201,12 @@ input[type="checkbox"] {
 }
 
 .contains-task-list {
-    font-size: 1.25em;
-    padding-left: 4rem;
+    font-size: 1.15em;
+    padding-left: 3rem;
+}
+
+.contains-task-list li {
+    margin-bottom: 1.15em;
 }
 
 ::selection {
@@ -454,4 +458,37 @@ svg text.small {
     code[class*="language-"], pre[class*="language-"] {
         text-shadow: none;
     }
+}
+
+.tabs {
+    max-width: 100%;
+    margin: 0;
+}
+
+.tabs > .tabs-header > .tab-label {
+    cursor: pointer;
+    color: var(--opaque);
+    padding: 12px;
+}
+
+.tabs > .tab-content {
+    display: none;
+}
+
+.tabs > .tab-content.active {
+    display: block;
+}
+
+.tabs > .tabs-header > .tab-label.active {
+    font-weight: bold;
+    color: var(--functional);
+}
+
+.tabs > .tabs-header,
+.tabs > .tab-content > * {
+    /* the same as in `article > *` */
+    position: relative;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 850px;
 }

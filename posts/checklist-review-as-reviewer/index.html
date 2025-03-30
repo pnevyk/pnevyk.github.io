@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+ <title>The bytes // they want you</title>
+ <meta name="description" content="@pnevyk's words on programming">
+ <link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" rel="stylesheet">
+ <link href="https://unpkg.com/prismjs@1.20.0/themes/prism-okaidia.css" rel="stylesheet" media="(prefers-color-scheme: dark)">
+ <link href="https://unpkg.com/prismjs@1.20.0/themes/prism.css" rel="stylesheet" media="(prefers-color-scheme: light)">
+ <link href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" rel="stylesheet" integrity="sha384-AfEj0r4/OFrOo5t7NnNe46zW/tFgW6x/bCJG8FqQCEo3+Aro6EYUG4+cU+KJWu/X" crossorigin="anonymous">
+ <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+ <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700&display=swap" rel="stylesheet">
+ <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+ <link href="/static/css/main.css" rel="stylesheet">
+ 
+</head>
+<body lang="en">
+ <header>
+ <h1><a class="title" href="/">The bytes // they want you</a></h1>
+ <p class="subtitle"><a href="https://twitter.com/pnevyk" target="_blank">@pnevyk’s</a> words on programming</p>
+ </header>
+ <main id="main">
+ <div id="progress"></div>
+<article>
+ <h1>Checklist: Review as reviewer</h1>
+ <div class="metadata">
+ <span>Published on <em><time datetime="2025-03-30">30 March 2025</time></em></span>
+ <span>About <em>2 min</em> reading time</span>
+ </div>
+ <div class="metadata">
+ 
+ Topics:
+ 
+ 
+ <em>#checklist</em>
+ 
+ <em>#code review</em>
+ 
+ <em>#review</em>
+ 
+ </div>
+
+ <p>This is a <a href="/posts/checklist-intro">checklist</a> for reviews from the perspective of reviewer (see also the <a href="/posts/checklist-review-as-submitter">submitter part</a>).
+It’s minimalistic and focuses on the soft side of the topic, not on the technicalities and rigor of the process.
+The goal is to be applicable in general context, but it’s targetted at code reviews specifically.</p>
+<h2 id="checklist">Checklist <a class="header-anchor" href="#checklist">#</a></h2>
+<p>Read this before starting a review and then go through it before clicking the “Submit review” button.</p>
+<div class="tabs" data-tab-context="versions">
+<div class="tabs-header">
+<span class="tab-label" data-tab-id="quick">Quick</span><span class="tab-label" data-tab-id="expanded">Expanded</span>
+</div>
+<div class="tab-content" data-tab-id="quick">
+<ol class="contains-task-list">
+<li class="task-list-item enabled"><label><input class="task-list-item-checkbox"type="checkbox">Higher-priority first, lower-priority postponed if overwhelming.</label></li>
+<li class="task-list-item enabled"><label><input class="task-list-item-checkbox"type="checkbox">Every comment adds real value.</label></li>
+<li class="task-list-item enabled"><label><input class="task-list-item-checkbox"type="checkbox">Issues have suggestions, with “observation → impact → suggestion” structure if non-trivial.</label></li>
+<li class="task-list-item enabled"><label><input class="task-list-item-checkbox"type="checkbox">Question instead of suggestion if not completely sure.</label></li>
+<li class="task-list-item enabled"><label><input class="task-list-item-checkbox"type="checkbox">Comments are not personal and are respectful and empathetic.</label></li>
+<li class="task-list-item enabled"><label><input class="task-list-item-checkbox"type="checkbox">Understand everything, or asked question if not.</label></li>
+</ol>
+</div>
+<div class="tab-content" data-tab-id="expanded">
+<ol class="contains-task-list">
+<li class="task-list-item enabled"><label><input class="task-list-item-checkbox"type="checkbox">All higher-priority items are addressed first. Lower-priority items are postponed to the next round if the first round would be overwhelming for the submitter.</label></li>
+<li class="task-list-item enabled"><label><input class="task-list-item-checkbox"type="checkbox">Every comment adds real value, whether for technical reasons, business reasons, or mentoring purposes.</label></li>
+<li class="task-list-item enabled"><label><input class="task-list-item-checkbox"type="checkbox">Every issue comment has a proposed (though not dictated) solution. Non-trivial issues use a brief “observation → impact → suggestion” structure, followed by a detailed description if helpful.</label></li>
+<li class="task-list-item enabled"><label><input class="task-list-item-checkbox"type="checkbox">Any comment I am not completely sure about is a question, not a suggestion.</label></li>
+<li class="task-list-item enabled"><label><input class="task-list-item-checkbox"type="checkbox">Every comment is only about the work, not the submitter, and is respectful and empathetic.</label></li>
+<li class="task-list-item enabled"><label><input class="task-list-item-checkbox"type="checkbox">I understand everything in the submitted work to a satisfactory detail. If not, I asked a question.</label></li>
+</ol>
+</div>
+</div>
+<details>
+<summary><span class="details-marker"></span>Resources</summary><ol>
+<li><a href="https://www.chiark.greenend.org.uk/~sgtatham/quasiblog/code-review-antipatterns/#priority-inversion">The Priority Inversion</a> | <a href="https://www.chiark.greenend.org.uk/~sgtatham/quasiblog/code-review-antipatterns/#round-trips">The Death of a Thousand Round Trips</a> | <a href="https://pustelto.com/blog/how-to-do-better-code-review/#6.-prioritize-your-feedback">Prioritize Your Feedback</a> | <a href="https://conventionalcomments.org/">Conventional Comments</a> | <a href="https://blog.datamole.ai/github-code-reviews-the-nice-things-i-wish-we-could-have-ee65ffb05209#9457">Review comments prioritization</a> <!-- Write article about "Two-pass" code review for addressing high-priority first (https://blog.codingconfessions.com/p/a-software-engineers-guide-to-reading-papers)? --></li>
+<li><a href="https://bitfieldconsulting.com/posts/code-review#using-comments-to-add-value">Using comments to add value</a> | <a href="https://phauer.com/2018/code-review-guidelines/#accept-that-there-are-different-solutions">Accept That There Are Different Solutions</a> | <a href="https://blog.danlew.net/2021/02/23/stop-nitpicking-in-code-reviews/">Stop Nitpicking in Code Reviews</a> | <a href="https://phauer.com/2018/code-review-guidelines/#three-filters-for-feedback">Three Filters For Feedback</a> | <a href="https://www.coderabbit.ai/blog/how-to-do-thoughtful-code-reviews#heading-set-the-pass-threshold">Set the pass threshold</a></li>
+<li><a href="https://www.chiark.greenend.org.uk/~sgtatham/quasiblog/code-review-antipatterns/#guessing-game">The Guessing Game</a> | <a href="https://phauer.com/2018/code-review-guidelines/#mind-the-oir-rule-of-giving-feedback">Mind the OIR-Rule of Giving Feedback</a> | <a href="https://google.github.io/eng-practices/review/reviewer/comments.html#guidance">Giving Guidance</a> | <a href="https://www.coderabbit.ai/blog/how-to-do-thoughtful-code-reviews#heading-clear-feedback">Clear feedback</a></li>
+<li><a href="https://phauer.com/2018/code-review-guidelines/#ask-questions">Ask Questions</a> | <a href="https://www.coderabbit.ai/blog/how-to-do-thoughtful-code-reviews#heading-clear-feedback">Clear feedback</a> | <a href="https://bitfieldconsulting.com/posts/code-review#using-comments-to-add-value">Using comments to add value</a></li>
+<li><a href="https://phauer.com/2018/code-review-guidelines/#talk-about-the-code-not-the-coder">Talk About the Code, Not the Coder</a> | <a href="https://www.coderabbit.ai/blog/how-to-do-thoughtful-code-reviews#heading-writereview-with-empathy">Write/review with empathy</a> | <a href="https://google.github.io/eng-practices/review/reviewer/comments.html#courtesy">Courtesy</a> | <a href="https://bitfieldconsulting.com/posts/code-review#accentuate-the-positive">Accentuate the positive</a></li>
+<li><a href="https://handbook.gitlab.com/handbook/engineering/workflow/reviewer-values/#honesty">Honesty</a></li>
+</ol>
+</details>
+<p>For code reviewer’s technical checklists, see</p>
+<ul>
+<li><a href="https://google.github.io/eng-practices/review/reviewer/looking-for.html">What to look for in a code review</a> by Google</li>
+<li><a href="https://auth0.com/blog/conducting-effective-code-reviews">Conducting Effective Code Reviews</a> by Auth0</li>
+<li><a href="https://github.com/mgreiler/code-review-checklist">Code Review Checklist</a> by <a href="https://www.michaelagreiler.com/">Michaela Greiler</a>.</li>
+</ul>
+
+</article>
+
+ </main>
+ <footer>
+ <p class="copyright">Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">Creative Commons</a> | Feel free to share</p>
+ <div class="links">
+ <a href="https://github.com/pnevyk" target="_blank"><i class="fa fa-github"></i></a>
+ <a href="https://twitter.com/pnevyk" target="_blank"><i class="fa fa-twitter"></i></a>
+ </div>
+ </footer>
+
+ <script src="/static/js/main.js"></script>
+ <script defer src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.js" integrity="sha384-g7c+Jr9ZivxKLnZTDUhnkOnsh30B4H0rpLUpJ4jAIKs4fnJI+sEnkvrMWph2EDg4" crossorigin="anonymous"></script>
+</body>
+</html>
