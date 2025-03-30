@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xml:base="https://pnevyk.github.io/" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>The bytes // they want you</title>
+    <link>https://pnevyk.github.io/</link>
+    <atom:link href="https://pnevyk.github.io/feed.xml" rel="self" type="application/rss+xml" />
+    <description>@pnevyk’s words on programming</description>
+    <language>en</language>
+    
+    
+    
+    <item>
+      <title>Checklist: Sending email</title>
+      <link>https://pnevyk.github.io/posts/checklist-email/</link>
+      <description>
+        &lt;p&gt;This is a &lt;a href=&quot;https://pnevyk.github.io/posts/checklist-intro&quot;&gt;checklist&lt;/a&gt; for sending professional emails.
+It doesn&#39;t cover basics like choosing the right tone for the audience, greetings and sign-offs, text formatting, or how to approach CC, reply all, and similar features.
+Some of the items should be treated only as considerations and applied depending on the situation.&lt;/p&gt;
+    </description>
+      <pubDate>Mon, 31 Mar 2025 00:00:00 +0000</pubDate>
+      <dc:creator>Petr Nevyhoštěný</dc:creator>
+      <guid>https://pnevyk.github.io/posts/checklist-email/</guid>
+    </item>
+    
+    
+    
+    <item>
+      <title>Checklist: Review as submitter</title>
+      <link>https://pnevyk.github.io/posts/checklist-review-as-submitter/</link>
+      <description>
+        &lt;p&gt;This is a &lt;a href=&quot;https://pnevyk.github.io/posts/checklist-intro&quot;&gt;checklist&lt;/a&gt; for reviews from the perspective of submitter (see also the &lt;a href=&quot;https://pnevyk.github.io/posts/checklist-review-as-reviewer&quot;&gt;reviewer part&lt;/a&gt;).
+It&#39;s minimalistic and focuses on the soft side of the topic, not on the technicalities and rigor of the process.
+The goal is to be applicable in general context, but it&#39;s targetted at code reviews specifically.&lt;/p&gt;
+    </description>
+      <pubDate>Sun, 30 Mar 2025 00:00:00 +0000</pubDate>
+      <dc:creator>Petr Nevyhoštěný</dc:creator>
+      <guid>https://pnevyk.github.io/posts/checklist-review-as-submitter/</guid>
+    </item>
+    
+    
+    
+    <item>
+      <title>Checklist: Review as reviewer</title>
+      <link>https://pnevyk.github.io/posts/checklist-review-as-reviewer/</link>
+      <description>
+        &lt;p&gt;This is a &lt;a href=&quot;https://pnevyk.github.io/posts/checklist-intro&quot;&gt;checklist&lt;/a&gt; for reviews from the perspective of reviewer (see also the &lt;a href=&quot;https://pnevyk.github.io/posts/checklist-review-as-submitter&quot;&gt;submitter part&lt;/a&gt;).
+It&#39;s minimalistic and focuses on the soft side of the topic, not on the technicalities and rigor of the process.
+The goal is to be applicable in general context, but it&#39;s targetted at code reviews specifically.&lt;/p&gt;
+    </description>
+      <pubDate>Sun, 30 Mar 2025 00:00:00 +0000</pubDate>
+      <dc:creator>Petr Nevyhoštěný</dc:creator>
+      <guid>https://pnevyk.github.io/posts/checklist-review-as-reviewer/</guid>
+    </item>
+    
+    
+    
+    <item>
+      <title>Checklists</title>
+      <link>https://pnevyk.github.io/posts/checklist-intro/</link>
+      <description>
+        &lt;p&gt;Here is what &lt;a href=&quot;https://en.wikipedia.org/wiki/Checklist&quot;&gt;Wikipedia&lt;/a&gt; has to say:&lt;/p&gt;
+    </description>
+      <pubDate>Sat, 29 Mar 2025 00:00:00 +0000</pubDate>
+      <dc:creator>Petr Nevyhoštěný</dc:creator>
+      <guid>https://pnevyk.github.io/posts/checklist-intro/</guid>
+    </item>
+    
+    
+    
+    <item>
+      <title>Proptest strategies the hard way</title>
+      <link>https://pnevyk.github.io/posts/proptest-strategies-the-hard-way/</link>
+      <description>
+        &lt;p&gt;&lt;a href=&quot;https://crates.io/crates/proptest&quot;&gt;Proptest&lt;/a&gt; is a Rust crate for &lt;a href=&quot;https://altsysrq.github.io/proptest-book/intro.html#what-is-property-testing&quot;&gt;property-based testing&lt;/a&gt;. It provides data generators for standard types and ways how to
+&lt;a href=&quot;https://altsysrq.github.io/proptest-book/proptest/tutorial/macro-prop-compose.html&quot;&gt;combine&lt;/a&gt; and
+&lt;a href=&quot;https://altsysrq.github.io/proptest-book/proptest/tutorial/transforming-strategies.html&quot;&gt;transform&lt;/a&gt; those to create instances of your own types.
+You can also use &lt;a href=&quot;https://altsysrq.github.io/proptest-book/proptest-derive/index.html&quot;&gt;proptest-derive&lt;/a&gt; crate for implementing the generator for your type automatically.
+All this is useful, but in more complicated cases it makes sense to implement this manually.
+And this post shows how to do that.
+It is based on my experience writing generators for &lt;a href=&quot;https://github.com/pnevyk/gryf/blob/main/src/infra/proptest.rs&quot;&gt;gryf&lt;/a&gt; graph library.&lt;/p&gt;
+    </description>
+      <pubDate>Tue, 06 Jun 2023 00:00:00 +0000</pubDate>
+      <dc:creator>Petr Nevyhoštěný</dc:creator>
+      <guid>https://pnevyk.github.io/posts/proptest-strategies-the-hard-way/</guid>
+    </item>
+    
+    
+    
+    <item>
+      <title>Writing a simple query system in Rust</title>
+      <link>https://pnevyk.github.io/posts/query-system-in-rust/</link>
+      <description>
+        &lt;p&gt;What I mean by &lt;strong&gt;query system&lt;/strong&gt; here is a pattern for requesting and computing data in a program in on-demand way.
+The data don&#39;t need to be computed ahead of time at the start of the program, but only when they are &lt;em&gt;actually needed&lt;/em&gt;.
+In this post, I will walk you through a solution to this approach I came up with in Rust,
+which happened to be a good fit in one of my projects.
+If not yet, you will eventually be able to implement your own, tailored to your needs.&lt;/p&gt;
+    </description>
+      <pubDate>Mon, 27 Jul 2020 00:00:00 +0000</pubDate>
+      <dc:creator>Petr Nevyhoštěný</dc:creator>
+      <guid>https://pnevyk.github.io/posts/query-system-in-rust/</guid>
+    </item>
+    
+    
+    
+    <item>
+      <title>So it begins</title>
+      <link>https://pnevyk.github.io/posts/so-it-begins/</link>
+      <description>
+        &lt;p&gt;Hello there! I welcome you on these pages.
+My parents have given me a name Petr and it&#39;s still being used as my &amp;quot;identifier&amp;quot;.
+Hopefully, this will be the very last useless information you get from this blog.
+I would like to be writing some words -- because that is something I quite enjoy -- and they will get published here.
+These words will be (almost surely) always about programming and related things.
+There is no need for trying to predict what exactly the topics are going to be.
+This will crystallize when actual posts happen to be written.&lt;/p&gt;
+    </description>
+      <pubDate>Sat, 18 Jul 2020 00:00:00 +0000</pubDate>
+      <dc:creator>Petr Nevyhoštěný</dc:creator>
+      <guid>https://pnevyk.github.io/posts/so-it-begins/</guid>
+    </item>
+    
+  </channel>
+</rss>
