@@ -46,11 +46,13 @@ header > *, article > *, footer > * {
     max-width: 850px;
 }
 
-article > pre {
+article > pre,
+.tabs > .tab-content > pre {
     max-width: 100%;
 }
 
-article > pre > code {
+article > pre > code,
+.tabs > .tab-content > pre > code {
     display: block;
     position: relative;
     margin-left: auto;
