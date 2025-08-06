@@ -24,6 +24,14 @@
 }
 }
 
+@view-transition {
+    navigation: auto;
+}
+
+::view-transition-group(root) {
+  animation-duration: 1s;
+}
+
 html,
 body {
     color: var(--text-color);
