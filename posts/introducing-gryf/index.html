@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+ <title>Introducing gryf: A new graph library for Rust | The bytes // they want you</title>
+ <meta name="description" content="@pnevyk's words on programming">
+ <link rel="icon" type="image/png" href="/static/img/favicon.png" />
+ <link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" rel="stylesheet">
+ <link href="https://unpkg.com/prismjs@1.20.0/themes/prism-okaidia.css" rel="stylesheet" media="(prefers-color-scheme: dark)">
+ <link href="https://unpkg.com/prismjs@1.20.0/themes/prism.css" rel="stylesheet" media="(prefers-color-scheme: light)">
+ <link href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" rel="stylesheet" integrity="sha384-AfEj0r4/OFrOo5t7NnNe46zW/tFgW6x/bCJG8FqQCEo3+Aro6EYUG4+cU+KJWu/X" crossorigin="anonymous">
+ <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+ <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700&display=swap" rel="stylesheet">
+ <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+ <link href="/static/css/main.css" rel="stylesheet">
+ 
+</head>
+<body lang="en">
+ <header>
+ <h1><a class="title" href="/">The bytes // they want you</a></h1>
+ <p class="subtitle"><a href="https://twitter.com/pnevyk" target="_blank">@pnevyk’s</a> words on programming</p>
+ </header>
+ <main id="main">
+ <div id="progress"></div>
+<article style="view-transition-name: post-introducing-gryf-a-new-graph-library-for-rust;">
+ <h1>Introducing gryf: A new graph library for Rust</h1>
+ <div class="metadata">
+ <span>Published on <em><time datetime="2025-08-22">22 August 2025</time></em></span>
+ <span>About <em>28 min</em> reading time</span>
+ </div>
+ <div class="metadata">
+ 
+ Topics:
+ 
+ 
+ <em>#rust</em>
+ 
+ <em>#graph theory</em>
+ 
+ <em>#announcement</em>
+ 
+ <em>#gryf</em>
+ 
+ </div>
+
+ <p><a href="https://crates.io/crates/gryf">Gryf</a> is a new graph data structure
+library for Rust aspiring to be <em>convenient</em>, <em>versatile</em>, <em>correct</em> and <em>performant</em>.
+This post describes what it is, what its state is, why to use it and some miscellaneous bits.
+Besides merely introducing it, I will also talk about details that are interesting to me and I am proud of.</p>
+<p>This post is quite long, with loads of text (but also diagrams, plots and “tables”).
+Feel free to skip to only sections that you are interested in.
+If you just need a short introduction, examples and API reference, check out the documentation on <a href="https://docs.rs/gryf">docs.rs</a> instead.</p>
+<figure><img src="/static/img/gryf-main-example.png" style="max-width: 100%" alt="Example graph from the gryf documentation.
+No deep meaning really, just for the sake of having a picture in a blog post.
+But now you at least know how many kilometers there is on a road from Florence to Rome.
+"><figcaption><p>Example graph from the <a href="https://docs.rs/gryf">gryf documentation</a>.
+No deep meaning really, just for the sake of having a picture in a blog post.
+But now you at least know how many kilometers there is on a road from Florence to Rome.</p>
+</figcaption></figure>
+<details class="toc">
+<summary>Table of contents</summary>
+<nav class="table-of-contents"><ul><li><a href="#example">Example </a></li><li><a href="#why-gryf%3F">Why gryf? </a><ul><li><a href="#problems-instead-of-algorithms">Problems instead of algorithms </a></li><li><a href="#builder-pattern-for-algorithm-parameters">Builder pattern for algorithm parameters </a></li><li><a href="#separation-of-graph-storage-and-semantics">Separation of graph storage and semantics </a></li><li><a href="#automatic-algorithm-selection">Automatic algorithm selection </a></li><li><a href="#support-for-implicit-graphs">Support for implicit graphs </a></li></ul></li><li><a href="#correctness">Correctness </a></li><li><a href="#performance">Performance </a></li><li><a href="#algorithms">Algorithms </a></li><li><a href="#conclusion">Conclusion </a></li><li><a href="#acknowledgements">Acknowledgements </a></li></ul></nav></details>
+<h2 id="example">Example <a class="header-anchor" href="#example">#</a></h2>
+<p>Before jumping into the content, let’s see an example so you get a feeling how gryf looks like.
+It’s nothing spectacular or unique, yet I believe there are some interesting ideas visible already in this short code snippet.</p>
+<pre class="language-rust"><code class="language-rust"><span class="token keyword">use</span> <span class="token namespace">gryf<span class="token punctuation">::</span></span><span class="token punctuation">{</span><span class="token class-name">Graph</span><span class="token punctuation">,</span> <span class="token namespace">algo<span class="token punctuation">::</span></span><span class="token class-name">ShortestPaths</span><span class="token punctuation">}</span><span class="token punctuation">;</span><br><br><span class="token comment">// Default storage is adjacency list, but that can be simply changed by</span><br><span class="token comment">// using `Graph::new_undirected_in`.</span><br><span class="token keyword">let</span> <span class="token keyword">mut</span> graph <span class="token operator">=</span> <span class="token class-name">Graph</span><span class="token punctuation">::</span><span class="token function">new_undirected</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br><span class="token keyword">let</span> prague <span class="token operator">=</span> graph<span class="token punctuation">.</span><span class="token function">add_vertex</span><span class="token punctuation">(</span><span class="token string">"Prague"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token keyword">let</span> bratislava <span class="token operator">=</span> graph<span class="token punctuation">.</span><span class="token function">add_vertex</span><span class="token punctuation">(</span><span class="token string">"Bratislava"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token keyword">let</span> vienna <span class="token operator">=</span> graph<span class="token punctuation">.</span><span class="token function">add_vertex</span><span class="token punctuation">(</span><span class="token string">"Vienna"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token keyword">let</span> munich <span class="token operator">=</span> graph<span class="token punctuation">.</span><span class="token function">add_vertex</span><span class="token punctuation">(</span><span class="token string">"Munich"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token keyword">let</span> nuremberg <span class="token operator">=</span> graph<span class="token punctuation">.</span><span class="token function">add_vertex</span><span class="token punctuation">(</span><span class="token string">"Nuremberg"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token keyword">let</span> florence <span class="token operator">=</span> graph<span class="token punctuation">.</span><span class="token function">add_vertex</span><span class="token punctuation">(</span><span class="token string">"Florence"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token keyword">let</span> rome <span class="token operator">=</span> graph<span class="token punctuation">.</span><span class="token function">add_vertex</span><span class="token punctuation">(</span><span class="token string">"Rome"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>graph<span class="token punctuation">.</span><span class="token function">extend_with_edges</span><span class="token punctuation">(</span><span class="token punctuation">[</span><br>    <span class="token punctuation">(</span>prague<span class="token punctuation">,</span> bratislava<span class="token punctuation">,</span> <span class="token number">328u32</span><span class="token punctuation">)</span><span class="token punctuation">,</span><br>    <span class="token punctuation">(</span>prague<span class="token punctuation">,</span> nuremberg<span class="token punctuation">,</span> <span class="token number">297</span><span class="token punctuation">)</span><span class="token punctuation">,</span><br>    <span class="token punctuation">(</span>prague<span class="token punctuation">,</span> vienna<span class="token punctuation">,</span> <span class="token number">293</span><span class="token punctuation">)</span><span class="token punctuation">,</span><br>    <span class="token punctuation">(</span>bratislava<span class="token punctuation">,</span> vienna<span class="token punctuation">,</span> <span class="token number">79</span><span class="token punctuation">)</span><span class="token punctuation">,</span><br>    <span class="token punctuation">(</span>nuremberg<span class="token punctuation">,</span> munich<span class="token punctuation">,</span> <span class="token number">170</span><span class="token punctuation">)</span><span class="token punctuation">,</span><br>    <span class="token punctuation">(</span>vienna<span class="token punctuation">,</span> munich<span class="token punctuation">,</span> <span class="token number">402</span><span class="token punctuation">)</span><span class="token punctuation">,</span><br>    <span class="token punctuation">(</span>vienna<span class="token punctuation">,</span> florence<span class="token punctuation">,</span> <span class="token number">863</span><span class="token punctuation">)</span><span class="token punctuation">,</span><br>    <span class="token punctuation">(</span>munich<span class="token punctuation">,</span> florence<span class="token punctuation">,</span> <span class="token number">646</span><span class="token punctuation">)</span><span class="token punctuation">,</span><br>    <span class="token punctuation">(</span>florence<span class="token punctuation">,</span> rome<span class="token punctuation">,</span> <span class="token number">278</span><span class="token punctuation">)</span><span class="token punctuation">,</span><br><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br><span class="token comment">// As the edge weights are unsigned and there is a specific goal, Dijktra's</span><br><span class="token comment">// algorithm is applied. For signed edges, Bellman-Ford would be used.</span><br><span class="token keyword">let</span> shortest_paths <span class="token operator">=</span> <span class="token class-name">ShortestPaths</span><span class="token punctuation">::</span><span class="token function">on</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>graph<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">goal</span><span class="token punctuation">(</span>prague<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">run</span><span class="token punctuation">(</span>rome<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">unwrap</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token keyword">let</span> distance <span class="token operator">=</span> shortest_paths<span class="token punctuation">[</span>prague<span class="token punctuation">]</span><span class="token punctuation">;</span><br><span class="token keyword">let</span> path <span class="token operator">=</span> shortest_paths<br>    <span class="token punctuation">.</span><span class="token function">reconstruct</span><span class="token punctuation">(</span>prague<span class="token punctuation">)</span><br>    <span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token closure-params"><span class="token closure-punctuation punctuation">|</span>v<span class="token closure-punctuation punctuation">|</span></span> graph<span class="token punctuation">[</span>v<span class="token punctuation">]</span><span class="token punctuation">)</span><br>    <span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">::</span><span class="token operator">&lt;</span><span class="token class-name">Vec</span><span class="token operator">&lt;</span>_<span class="token operator">>></span><span class="token punctuation">(</span><span class="token punctuation">)</span><br>    <span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span><span class="token string">" - "</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br><span class="token macro property">println!</span><span class="token punctuation">(</span><span class="token string">"{distance} km from Prague through {path}"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token comment">// 1391 km from Prague through Nuremberg - Munich - Florence - Rome</span></code></pre>
+<h2 id="why-gryf%3F">Why gryf? <a class="header-anchor" href="#why-gryf%3F">#</a></h2>
+<p>The current go-to crate for graphs is <a href="https://crates.io/crates/petgraph">petgraph</a>, with ~12 millions downloads per month and ~800 directly dependent crates at the time of writing this post.
+It’s great and does its job well.
+<strong>If you want a battle-tested library for your serious use case, I recommend petgraph or <a href="https://crates.io/crates/pathfinding">pathfinding</a></strong>.
+Nevertheless, I thought that the user and developer experience with a graph library in Rust could be even better and I tried to materialize my ideas into a new library.</p>
+<p>Very quickly, here is a list of features that are intriguing in my opinion:</p>
+<ul>
+<li>Referring primarily to problems (shortest paths) instead of algorithms (Dijkstra) to reduce the barrier for (non-expert) users.</li>
+<li>Builder pattern for algorithm parameters to provide nice API for optional values.</li>
+<li>Separation of graph storage (adjacency list, adjacency matrix) and semantics (unrestricted graph, path, bipartite) to turn a <a href="https://code.visualstudio.com/assets/api/language-extensions/language-server-extension-guide/lsp-languages-editors.png">M × N problem into M + N problem</a>.</li>
+<li>Automatic algorithm selection for the problem on given graph with certain properties.</li>
+<li>Support for <a href="https://en.wikipedia.org/wiki/Implicit_graph">implicit graphs</a>.</li>
+</ul>
+<figure><img src="/static/img/gryf-main-features.png" style="max-width: 100%" alt="The main features of gryf illustrated in a diagram.
+"><figcaption><p>The main features of gryf illustrated in a diagram.</p>
+</figcaption></figure>
+<p>Now let’s look closer into each one of them.
+If you are not particularly excited about the details, you can skip to the <a href="#correctness"><em>Correctness</em></a> section.</p>
+<h3 id="problems-instead-of-algorithms">Problems instead of algorithms <a class="header-anchor" href="#problems-instead-of-algorithms">#</a></h3>
+<p>There are two main motivations for organizing the algorithms into the problems they solve represented by a single type.
+The first one is lower barrier for users, especially those that don’t have expert knowledge of graph theory.
+Many programmers might know the difference between Dijkstra’s and Bellman–Ford algorithms for shortest paths, as it is often in an undergraduate computer science course.
+But the number of people who are familiar with algorithms for more niche problems like
+<a href="https://en.wikipedia.org/wiki/Strongly_connected_component">strongly connected components</a>,
+<a href="https://en.wikipedia.org/wiki/Matching_(graph_theory)">matching</a> or
+<a href="https://en.wikipedia.org/wiki/Dominator_(graph_theory)">dominators</a> quickly decreases.</p>
+<p>The assumption is that the programmers know what <em>problem</em> they want to solve.
+They could find that in a blog post, Wikipedia article, paper or told by a colleague.
+And that’s all they should care about in most cases – <em>how</em> to solve that problem should be <a href="#automatic-algorithm-selection">left to the tool</a>.</p>
+<p>The second reason for organizing the algorithms into problems is to hide implementation details and provide additional features.
+In existing graph libraries for Rust, the algorithms often return standard types like <code>Vec</code> or <code>HashMap</code>
+(<a href="https://docs.rs/petgraph/0.8.2/petgraph/algo/dijkstra/fn.dijkstra.html">1</a>, <a href="https://docs.rs/petgraph/0.8.2/petgraph/algo/fn.toposort.html">2</a>, <a href="https://docs.rs/pathfinding/4.14.0/pathfinding/directed/dijkstra/fn.dijkstra.html">3</a>, <a href="https://docs.rs/graph/0.3.1/graph/sssp/fn.delta_stepping.html">4</a>).</p>
+<p>But that has drawbacks.
+It somewhat leaks the implementation choices to the API and it cannot be changed in a backwards compatible way.
+But a more important consequence is that it misses a chance to provide additional functionality on the problem’s solution that a custom type could implement.
+Examples of these bonus features are path reconstruction for shortest paths algorithm, asking whether the found matching is perfect or not, or lazy behavior (iterators) for algorithms that allow it.</p>
+<p>In gryf, all algorithms strictly return a dedicated new type which avoids these drawbacks.
+Where it makes sense, conversion to a standard type like <code>Vec</code> is provided.</p>
+<h3 id="builder-pattern-for-algorithm-parameters">Builder pattern for algorithm parameters <a class="header-anchor" href="#builder-pattern-for-algorithm-parameters">#</a></h3>
+<p>Algorithms can have a bunch of parameters, some of them required, some optional.
+It’s not great requiring passing dummy values like <code>None</code> when an optional parameter is not needed,
+especially when its use cases are very rare.
+Moreover, adding a new optional parameter as a new function argument is a breaking change, which is also unfortunate.</p>
+<p>The builder pattern (or you could also call it <a href="https://en.wikipedia.org/wiki/Fluent_interface">fluent API</a>) beautifully solves these problems.
+That is why all algorithms in gryf follow this API structure:</p>
+<pre class="language-rust"><code class="language-rust"><span class="token keyword">let</span> output <span class="token operator">=</span> <span class="token class-name">Problem</span><span class="token punctuation">::</span><span class="token function">on</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>graph<span class="token punctuation">)</span><br>    <span class="token punctuation">.</span><span class="token function">optional_param1</span><span class="token punctuation">(</span><span class="token punctuation">..</span><span class="token punctuation">)</span><br>    <span class="token punctuation">.</span><span class="token function">optional_param2</span><span class="token punctuation">(</span><span class="token punctuation">..</span><span class="token punctuation">)</span><br>    <span class="token punctuation">.</span><span class="token function">run</span><span class="token punctuation">(</span>required_params<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+<p>The builder types can have a handful of generic types.
+For example in shortest paths case, the graph, the weight type, the mapping from edge attribute to weight and the choice of algorithm are all generic types on the builder.
+This allows quite flexible and powerful pattern of enabling some builder methods only in specific cases.</p>
+<p>For instance, choosing the BFS algorithm for shortest paths is allowed only when the weight mapping is of type representing “constant weight”.
+Similarly, there is a different <code>run</code> method for each algorithm generic parameter (a closed set),
+allowing different trait constraints on the graph
+(e.g., Dijkstra’s algorithm doesn’t require the graph to be finite while Bellman–Ford does).</p>
+<p>One interesting challenge was a support for floating point number weights.
+Here floats not implementing the <code>Ord</code> trait strikes again (but I definitely not argue against that decision).
+The requirement was to let the users use <code>f32</code> and <code>f64</code> as usual, that is,
+not demanding to use a special type like from <a href="https://crates.io/crates/ordered-float">ordered-float</a> crate.
+On the other hand, having the weights being <code>Ord</code> is very useful in algorithm development for data structures that need it, like a priority queue.</p>
+<p>Gryf uses a trait <code>Weight</code> (which is needed for other purposes anyway) with an associated type for <code>Ord</code>ered equivalent of the type implementing the <code>Weight</code> trait.
+For integers, this is <code>Self</code> (the type itself).
+But for floats, it’s a new type wrapping the value and implementing the <code>Ord</code> trait,
+specifically by using <a href="https://doc.rust-lang.org/stable/std/primitive.f32.html#method.total_cmp">total_cmp</a> method.
+This is a compromise where users can use floats directly while in algorithms it’s just a matter of converting the weight to an <code>Ord</code> equivalent,
+which is in all practical cases a noop.</p>
+<aside class="note"><h3>by the way&hellip;</h3><div><p>I don’t remember how I got this idea to use the builder pattern for algorithm parameters.
+I would like to say it was inspired by <a href="https://youtu.be/Phk0C-kLlho?t=1800">Ergonomic APIs for hard problems</a> talk by Raph Levien,
+but the date of the <a href="https://github.com/pnevyk/gryf/commit/97fc8cac67b88d4ed94c5e6247ad56cbf471f318">commit that introduced the builder pattern</a> to gryf
+precedes the upload date of the video by a few days<sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a><span class="footnote-content">But I have no doubts that I must have felt very clever when I saw the chapter about Fluent API / builder pattern in the talk describing exactly my case.</span></sup>.
+But looking at the old way of running a shortest paths algorithm with</p>
+<pre class="language-rust"><code class="language-rust"><span class="token class-name">ShortestPaths</span><span class="token punctuation">::</span><span class="token function">run</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>graph<span class="token punctuation">,</span> source<span class="token punctuation">,</span> <span class="token class-name">Some</span><span class="token punctuation">(</span>goal<span class="token punctuation">)</span><span class="token punctuation">,</span> identity<span class="token punctuation">)</span></code></pre>
+<p>it kind of begs the question how to make the <code>goal</code> and <code>edge_weight</code> parameters actually optional
+and not need to specify a dummy value if they are not needed.</p>
+</div></aside><h3 id="separation-of-graph-storage-and-semantics">Separation of graph storage and semantics <a class="header-anchor" href="#separation-of-graph-storage-and-semantics">#</a></h3>
+<p>There are a few standard graph representations like adjacency list, adjacency matrix and some more.
+If efficiency is a goal, their implementation is not exactly trivial, with many complicated edge cases<sup class="footnote-ref"><a href="#fn2" id="fnref2">[2]</a><span class="footnote-content">I learned this the hard way by actually implementing the representations and then having fuzzing and property-based testing discovering new bugs again and again.</span></sup>,
+so it’s essential that full-blown, performant and correct implementations of these representations are available.
+Moreover, there could be use cases justifying or requiring a specialized representation for the problem.
+This might be caused either by problem specifics or by the environment (embedded code<sup class="footnote-ref"><a href="#fn3" id="fnref3">[3]</a><span class="footnote-content">Support for <code>no_std</code> is very compelling for me and I believe that the design of gryf supports it.
+However, further work and reorganization is needed to achieve this goal.</span></sup> or disk/network access).</p>
+<p>On the other hand, it is beneficial to have type-level guarantees for a graph structure or properties.
+This includes a graph being a path, a tree, bipartite, connected, without self-loops or k-regular.
+Having a specific type for these classes clearly communicates the intention
+and makes it impossible to violate the property since only limited, specialized API is implemented on such type.</p>
+<p>Separating the storage and the semantics allows to focus only on one task at hand during implementation
+and then combine available types to achieve the desired state.
+In a way, it turns the “M × N” problem into “M + N” problem.</p>
+<figure><img src="/static/img/gryf-m-times-n.png" style="max-width: 100%" alt="Separation of graph storage and semantics is a solution to "M × N" problem.
+"><figcaption><p>Separation of graph storage and semantics is a solution to “M × N” problem.</p>
+</figcaption></figure>
+<aside class="note"><h3>by the way&hellip;</h3><div><p>I consciously wanted to have the list of available methods on the graphs visible in the list of methods produced by rustdoc, not under scattered trait implementations.
+But having a bunch of graph storages and their encapsulations providing essentially the same interface
+means a lot of duplication of method signatures and documentation.</p>
+<figure><img src="/static/img/gryf-docs.png" style="max-width: 100%" alt="Inherent methods fn the graph in the generated documentation.
+"><figcaption><p>Inherent methods fn the graph in the generated documentation.</p>
+</figcaption></figure>
+<p>There are two mechanisms how to make sure that the documentation is in sync and that all graph encapsulations implement all desired methods.
+For the former, I decided to put the documentation of the common operations into dedicated Markdown files.
+Then on every method definition corresponding to that operation, <code>#[doc = include_str!("docs/operation.md")]</code> attribute is used.
+Whenever there is a change to the content, all occurrences are automatically “updated”.</p>
+<p>For ensuring that no method is missing on a graph encapsulation,
+I wrote <a href="https://github.com/pnevyk/gryf/blob/2b8a2b3b27ba7442c5aeb8622234894e1b042bc6/gryf/src/lib.rs#L111-L308">automated tests</a>
+that parse the methods from the definitions and implementations and compare these.
+It uses manual parsing from raw source code, which doesn’t feel reliable, but it works.</p>
+</div></aside><h3 id="automatic-algorithm-selection">Automatic algorithm selection <a class="header-anchor" href="#automatic-algorithm-selection">#</a></h3>
+<p>There is one more advantage of organizing algorithms into the problems they solve, to which I would like to dedicate its own subsection.
+Since the user doesn’t need to be concerned with the algorithm to be used,
+it can actually be the library developers that can come up with heuristics that – to the best of their knowledge, experience and benchmarks – picks the best algorithm for the task.</p>
+<p>Such heuristic can take into account the basic properties of the graph like vertex or edge count.
+But perhaps more interestingly, it should also be able to check structural and other properties
+like graph being of certain class (bipartite, path), connected, weights being unsigned, etc.
+Ideally, these properties should be known at compile time to avoid runtime overhead of the checks.</p>
+<p>Gryf tries to use trait functions without parameters<sup class="footnote-ref"><a href="#fn4" id="fnref4">[4]</a><span class="footnote-content">Associated constants could be used as well.</span></sup> to express guarantees known at compile time
+(<a href="https://docs.rs/gryf/0.1.0/gryf/core/marker/trait.EdgeType.html#tymethod.is_directed"><code>EdgeType::is_directed</code></a>, <a href="https://docs.rs/gryf/0.1.0/gryf/core/weight/trait.Weight.html#tymethod.is_unsigned"><code>Weight::is_unsigned</code></a>, <a href="https://docs.rs/gryf/0.1.0/gryf/core/id/trait.IdType.html#tymethod.is_integer"><code>IdType::is_integer</code></a>, and the entire <a href="https://docs.rs/gryf/0.1.0/gryf/core/props/trait.Guarantee.html"><code>Guarantee</code></a> trait).
+When compiling code for a concrete type, the compiler eliminates branches that don’t apply for that type, with zero runtime overhead.</p>
+<figure><img src="/static/img/gryf-algorithm-selection.png" style="max-width: 100%" alt="A hypothetical decision diagram for shortest paths algorithm.
+The E+V×log2(V) &lt; V×E node is only for demonstration purposes, weighing in the dynamic properties of the graph and time complexities of the algorithms.
+In practice it would need to be more complicated.
+You may also wonder about the directed graph condition.
+Negative weights in undirected graphs (different from negative cycles in directed graphs) makes any algorithm to error out,
+so we assume there are no negative weights and choose a faster method.
+"><figcaption><p>A <em>hypothetical</em> decision diagram for shortest paths algorithm.
+The <em>E+V×log2(V) &lt; V×E</em> node is only for demonstration purposes, weighing in the dynamic properties of the graph and time complexities of the algorithms.
+In practice it would need to be more complicated.</p>
+<p>You may also wonder about the <em>directed graph</em> condition.
+Negative weights in undirected graphs (different from negative cycles in directed graphs) makes any algorithm to error out,
+so we assume there are no negative weights and choose a faster method.</p>
+</figcaption></figure>
+<p>And here comes another challenge with floats.
+Being unsigned is a valuable property of weights.
+If known at compile-time, it can lead to choosing a faster algorithm that doesn’t need to deal with negative weights.
+For integers, we have the family of unsigned types <code>u8</code>, <code>u16</code>, <code>u32</code>, <code>u64</code> and <code>usize</code>.
+But there is nothing like that for floats, which are arguably very commonly used as weights.</p>
+<p>Gryf therefore introduces new types <a href="https://docs.rs/gryf/0.1.0/gryf/core/weight/struct.uf32.html">uf32</a> and <a href="https://docs.rs/gryf/0.1.0/gryf/core/weight/struct.uf64.html">uf64</a>
+which are wrappers over corresponding primitive types to which virtually all work is delegated
+while making sure that the value is never negative.
+Whether this is actually useful and worthy, I am not sure yet.</p>
+<p>A valid concern is whether the automatic algorithm selection isn’t too magical
+and if it could lead to surprising behavior when choosing different algorithm for different graphs in the same program.
+Some sort of adaptiveness exists at various places, for example in sorting algorithm in the standard library
+(<a href="https://github.com/rust-lang/rust/blob/59a74db37df8628f778faf75faa41958bb07a42a/library/core/src/slice/sort/unstable/mod.rs#L31-L41">1</a>, <a href="https://github.com/rust-lang/rust/blob/59a74db37df8628f778faf75faa41958bb07a42a/library/core/src/slice/sort/unstable/quicksort.rs#L23-L36">2</a>)
+or in <a href="https://crates.io/crates/gemm">gemm</a>
+(<a href="https://github.com/sarah-ek/gemm/blob/8cdc1de4af69ce3fd2575b2c983fc1ccc974425f/gemm-common/src/gemm.rs#L261">1</a>, <a href="https://github.com/sarah-ek/gemm/blob/8cdc1de4af69ce3fd2575b2c983fc1ccc974425f/gemm-common/src/gemm.rs#L399-L410">2</a>),
+the matrix multiplication library used by <a href="https://crates.io/crates/faer">faer</a>.
+Thus, unless the selection heuristics don’t become too unpredictable, I believe that this feature is justifiable.
+If still in doubts, it is possible to choose a specific algorithm explicitly on the problem builder.</p>
+<p>One nice consequence is that when a new, faster algorithm is implemented for a problem and the algorithm selection heuristic starts to prefer it,
+the user then just updates the version of gryf and – boom! – the program gets a nice speed-up.
+Performance improvements in newer versions of a library are of course common,
+but in this case it would still be possible even if implementations of existing algorithms were perfectly optimized.
+And remarkably, new and faster algorithms even for old and fundamental problems like shortest paths <a href="https://arxiv.org/abs/2203.03456">are still being introduced</a> today.</p>
+<aside class="note"><h3>by the way&hellip;</h3><div><p>There were two triggers for this idea.
+The first one was that, for my application, I needed to solve a <a href="https://en.wikipedia.org/wiki/Maximum_cardinality_matching">maximum cardinality matching</a> on bipartite graphs, for which simpler and faster algorithms exist.
+I decided to contribute an algorithm to petgraph, but supporting just bipartite graphs felt suboptimal, so I implemented a more complicated and slower algorithm that works on arbitrary graphs.
+But I kept thinking how it would be nice if there was a way to detect a bipartite graph and use the faster method instead.</p>
+<p>The second trigger was that, again for the same application, I needed to find <a href="https://en.wikipedia.org/wiki/Strongly_connected_component">strongly connected components</a>.
+In petgraph, there are two algorithms for that: <code>tarjan_scc</code> and <code>kosaraju_scc</code>.
+The documentation doesn’t discuss when to use which.
+In my case it didn’t really matter, but still I thought that it would be nice if the library decided this instead of me.</p>
+</div></aside><h3 id="support-for-implicit-graphs">Support for implicit graphs <a class="header-anchor" href="#support-for-implicit-graphs">#</a></h3>
+<p>Implicit graphs determine the vertices or edges algorithmically based on some rules, rather than storing them explicitly in memory.
+I didn’t study this area that much and I haven’t found a compelling practical example other than game puzzles (Rubik’s cube, chess moves) or mathematics (<a href="https://stackoverflow.com/a/58887179">Collatz problem</a>).</p>
+<p>But that doesn’t mean there is none.
+At the very least, loading parts of the graph from disk or network because the whole graph wouldn’t fit into memory might be considered as an example of implicit graph
+and I can definitely see a real-world use case.</p>
+<p>There are two main elements that help this goal:</p>
+<ul>
+<li>Allowing custom types for vertex and edge IDs.
+That is, an ID doesn’t need to be an integer, but can be for instance a tuple of integers, or a name, or any other representation that can be used to <em>interpret</em> the vertex or edge.</li>
+<li>Traits that don’t assume finiteness of the graph
+and allow returning either borrowed values (explicit graphs, standard case) or owned values (implicit graph, constructed on demand).
+This is achieved by an enum that is very similar to <a href="https://doc.rust-lang.org/stable/std/borrow/enum.Cow.html"><code>Cow</code></a>.</li>
+</ul>
+<h2 id="correctness">Correctness <a class="header-anchor" href="#correctness">#</a></h2>
+<p>Now I hear you asking: “Ok, that’s all nice, but isn’t it buggy?”</p>
+<p>Correctness is very important for me, because graph is a complicated data structure that is supposed to be used as a reliable building block in the applications.
+Due to the complexity of implementation, unit tests are definitely not enough (but are still extensively used).
+That is why gryf uses fuzzing and property-based testing.</p>
+<p>Fuzzing is a technique where pseudo-random bytes are generated and used as source data for generating higher-level types, which are then passed to the testing code.
+Fuzzers then, in a clever way, try to find a byte sequence that produces input that causes a crash.
+In gryf, fuzzing is used to generate sequences of graph operations (add vertex/edge, remove vertex/edge) that are applied on the graph storages.
+After that, the following properties are checked:</p>
+<ul>
+<li>Consistency of the values returned by a storage methods like all iterators produce the number of elements equal to claimed vertex/edge count, relationships between in, out and total degree, <a href="https://en.wikipedia.org/wiki/Handshaking_lemma">handshaking lemma</a>, and similar.
+There is definitely room for more checks, but these basic properties as well as the fact that the storage doesn’t panic while applying the operations are already very valuable.</li>
+<li>Potential isomorphism between all pairs of storages.
+By “potential isomorphism” I mainly mean comparing <a href="https://en.wikipedia.org/wiki/Degree_(graph_theory)#Degree_sequence">degree sequences</a> which is a simple and fast, yet expressive graph invariant.
+But it by no means guarantees real isomorphism.
+The idea behind is that it is unlikely that three fundamentally different implementations would be buggy in the same way.</li>
+</ul>
+<p>Property-based testing is similar to fuzzing, but generates the input types directly using certain strategies and supports powerful input minimization when a failing case is found.
+Generated inputs are again passed into the testing code and problem-specific properties are tested.
+In gryf, property-based testing is mainly used for algorithms.
+Random graphs are generated with certain properties, the algorithm is executed and then the properties of the output are checked.
+Examples include</p>
+<ul>
+<li>Shortest paths and distances are calculated for all vertices if the graph is connected.</li>
+<li>Sequence of vertices is actually topologically sorted.</li>
+<li>Outputs from different algorithms have the same values (where should be).</li>
+</ul>
+<figure><img src="/static/img/gryf-fuzzing.png" style="max-width: 65%" alt="A simplified illustration of fuzzing and property-based testing used in gryf.
+"><figcaption><p>A simplified illustration of fuzzing and property-based testing used in gryf.</p>
+</figcaption></figure>
+<p>These two techniques did discover many bugs.
+The tests now run without finding any new ones<sup class="footnote-ref"><a href="#fn5" id="fnref5">[5]</a><span class="footnote-content">For fuzzing, I let them run for lower tens of minutes.
+While I am sure they could be running even longer, I consider it enough in the current phase of gryf’s life.</span></sup>.
+Even though they are not perfect, <strong>I am therefore fairly confident in the code correctness</strong>.</p>
+<p>These testing techniques are used continuously on the project.
+Property-based tests are executed on every pull request and merge to main.
+Fuzzing runs at the end of every week for several minutes.</p>
+<aside class="note"><h3>by the way&hellip;</h3><div><p>I learned a lot while implementing a custom <a href="https://crates.io/crates/proptest">proptest</a> strategy.
+I wrote down all my experience in <a href="/posts/proptest-strategies-the-hard-way">Proptest strategies the hard way</a>
+which I recommend to check if you are interested in this topic.</p>
+</div></aside><h2 id="performance">Performance <a class="header-anchor" href="#performance">#</a></h2>
+<p>Yet again I hear you asking: “That sounds fine, but is it fast?”</p>
+<p>Blazi… Well, I designed and implemented gryf with performance in mind, but it was not my primary focus so far.
+That is why it came as a pleasant surprise to me when preliminary benchmarks showed that it’s comparable to petgraph and in some cases even better.
+I hope it’s not a flaw in the implementation, but given what is described in the <em>Correctness</em> section, I am confident in core operations working properly.
+If you find an issue in my code, I would appreciate a bug report so that I can correct it.</p>
+<p>This is how the benchmarks are set up:</p>
+<ul>
+<li>For each case, results are measured for different vertex counts.</li>
+<li>For each vertex count, different “edge density” (probability <em>p</em> of an edge (u, v) being generated) is used.</li>
+<li>The edge generation is based on <a href="https://www.semanticscholar.org/paper/Efficient-generation-of-large-random-networks.-Batagelj-Brandes/4fa49861404325afca8a8f0decb64a323934ec22">this paper</a>.</li>
+<li>Vertex attributes are <code>u32</code> and edge attributes are <code>f32</code>.
+This only affects the memory used.</li>
+<li>For every benchmark, the random generator is seeded with the same seed.
+Thus all graphs with certain vertex count and edge density should be identical.
+It would be better to run the tests on different graphs, but I tried a few different random seeds with similar results.
+And I promise there was no <a href="https://koaning.io/til/optimal-seeds/">random seed tuning</a>.</li>
+</ul>
+<p>First benchmark I did was “basic operations” like vertex and edge addition and removal.
+The process is as follows:</p>
+<ol>
+<li>Add <em>N</em> vertices.</li>
+<li>Add random edges with given edge density relative to <em>N</em>.</li>
+<li>Remove <em>1/4 × N</em> random vertices.</li>
+<li>Remove random edges with given edge density relative to <em>1/4 × N</em>.</li>
+<li>Add random edges with given edge density relative to <em>3/4 × N</em>.</li>
+</ol>
+<figure><img src="/static/img/gryf-benchmarks.png" style="max-width: 100%" alt="Results for the "basic operations" benchmark, comparing gryf and petgraph on small graphs (top) and larger graphs (bottom).
+Parameter p represents the edge density in the graph.
+The benchmarks setup can be found here,
+although different sizes and densities were used for the purposes of the graph.
+"><figcaption><p>Results for the “basic operations” benchmark, comparing gryf and petgraph on small graphs (top) and larger graphs (bottom).
+Parameter <em>p</em> represents the edge density in the graph.
+The benchmarks setup can be found <a href="https://github.com/pnevyk/gryf/blob/c8a47c621dcee4b8edd64ee9cd9ed12edcd16d8d/gryf/benches/basic_ops.rs">here</a>,
+although different sizes and densities were used for the purposes of the graph.</p>
+</figcaption></figure>
+<p>It turns out that on smaller, sparse graphs, petgraph is faster than gryf.
+But interestingly, <strong>on larger, dense graphs, it is actually gryf who does better</strong>.
+This trend continues with vertex count increasing.
+For instance, I tried to bench <em>N = 5000, p = 0.5</em> graph and results are significant with 11.88 s for gryf and 2.926 min for petgraph.</p>
+<p>The rest of the benchmarks test the graph algorithms that gryf implements: shortest paths (Dijkstra and Bellman–Ford) and topological sort.
+First a graph is created with the same rules as in steps (1) and (2) above.
+The graph creation is not included in the time measurement.
+Then the algorithm is ran on the graph.
+The pattern with petgraph being better on smaller graphs while gryf being better on larger graphs shows up again in these cases.</p>
+<p>Below is a full output of all benchmarks if you are interested.
+I also asked a friend to run the same benchmark on his Framework and Mac computers and the results were the same relatively speaking.</p>
+<details>
+<summary><span class="details-marker"></span>Full benchmark output</summary><ul>
+<li>Intel® Core™ i5–8265U CPU @ 1.60GHz</li>
+<li>24 GiB RAM</li>
+<li>Arch Linux 6.9.10-arch1–1</li>
+<li>rustc 1.81.0-nightly (a70b2ae57 2024–06–09)</li>
+<li>divan v0.1.14</li>
+<li><a href="https://github.com/pnevyk/gryf/tree/c8a47c621dcee4b8edd64ee9cd9ed12edcd16d8d/gryf/benches">Benchmarks source</a></li>
+</ul>
+<pre class="language-text"><code class="language-text">╰─ benchmark<br>   ╰─ vertex count<br>      ╰─ edge density</code></pre>
+<pre class="language-text"><code class="language-text">basic_ops                            fastest       │ median<br>├─ gryf_adj_list_add_remove                        │<br>│  ├─ Directed                                     │<br>│  │  ├─ 100                                       │<br>│  │  │  ├─ 0.05                     72.27 µs      │ 76.66 µs<br>│  │  │  ├─ 0.5                      378.2 µs      │ 433.6 µs<br>│  │  │  ╰─ 0.95                     818.6 µs      │ 924.9 µs<br>│  │  ╰─ 1000                                      │<br>│  │     ├─ 0.05                     4.877 ms      │ 5.158 ms<br>│  │     ├─ 0.5                      105.8 ms      │ 117.1 ms<br>│  │     ╰─ 0.95                     343.2 ms      │ 381.4 ms<br>│  ╰─ Undirected                                   │<br>│     ├─ 100                                       │<br>│     │  ├─ 0.05                     34.48 µs      │ 35.76 µs<br>│     │  ├─ 0.5                      384.6 µs      │ 407.1 µs<br>│     │  ╰─ 0.95                     812.2 µs      │ 848.3 µs<br>│     ╰─ 1000                                      │<br>│        ├─ 0.05                     4.178 ms      │ 4.405 ms<br>│        ├─ 0.5                      124.4 ms      │ 132.9 ms<br>│        ╰─ 0.95                     391.4 ms      │ 412 ms<br>╰─ petgraph_graph_add_remove                       │<br>   ├─ Directed                                     │<br>   │  ├─ 100                                       │<br>   │  │  ├─ 0.05                     15.61 µs      │ 22.95 µs<br>   │  │  ├─ 0.5                      230 µs        │ 238.7 µs<br>   │  │  ╰─ 0.95                     585.7 µs      │ 595 µs<br>   │  ╰─ 1000                                      │<br>   │     ├─ 0.05                     2.801 ms      │ 2.917 ms<br>   │     ├─ 0.5                      248.5 ms      │ 313.9 ms<br>   │     ╰─ 0.95                     1.254 s       │ 1.317 s<br>   ╰─ Undirected                                   │<br>      ├─ 100                                       │<br>      │  ├─ 0.05                     13.56 µs      │ 13.71 µs<br>      │  ├─ 0.5                      210.7 µs      │ 220.1 µs<br>      │  ╰─ 0.95                     556.3 µs      │ 587.1 µs<br>      ╰─ 1000                                      │<br>         ├─ 0.05                     2.726 ms      │ 2.993 ms<br>         ├─ 0.5                      222.1 ms      │ 243 ms<br>         ╰─ 0.95                     1.051 s       │ 1.113 s</code></pre>
+<pre class="language-text"><code class="language-text">shortest_paths                   fastest       │ median<br>├─ gryf_bellman_ford_random                    │<br>│  ├─ 100                                      │<br>│  │  ├─ 0.25                    5.075 µs      │ 5.229 µs<br>│  │  ╰─ 0.75                    14.62 µs      │ 15.58 µs<br>│  ├─ 1000                                     │<br>│  │  ├─ 0.25                    515.4 µs      │ 546.4 µs<br>│  │  ╰─ 0.75                    1.584 ms      │ 1.657 ms<br>│  ╰─ 10000                                    │<br>│     ├─ 0.25                    58.05 ms      │ 60 ms<br>│     ╰─ 0.75                    179.9 ms      │ 187 ms<br>├─ gryf_dikstra_random                         │<br>│  ├─ 100                                      │<br>│  │  ├─ 0.25                    137.7 ns      │ 142.7 ns<br>│  │  ╰─ 0.75                    117.9 ns      │ 120.9 ns<br>│  ├─ 1000                                     │<br>│  │  ├─ 0.25                    106.3 ns      │ 109.3 ns<br>│  │  ╰─ 0.75                    93.85 ns      │ 96.73 ns<br>│  ╰─ 10000                                    │<br>│     ├─ 0.25                    103.7 ns      │ 106.7 ns<br>│     ╰─ 0.75                    107.7 ns      │ 110.7 ns<br>├─ petgraph_bellman_ford_random                │<br>│  ├─ 100                                      │<br>│  │  ├─ 0.25                    5.594 µs      │ 5.769 µs<br>│  │  ╰─ 0.75                    21.86 µs      │ 22.67 µs<br>│  ├─ 1000                                     │<br>│  │  ├─ 0.25                    585.2 µs      │ 617.1 µs<br>│  │  ╰─ 0.75                    2.437 ms      │ 2.553 ms<br>│  ╰─ 10000                                    │<br>│     ├─ 0.25                    79.15 ms      │ 81.87 ms<br>│     ╰─ 0.75                    223.8 ms      │ 226.9 ms<br>╰─ petgraph_dijkstra_random                    │<br>   ├─ 100                                      │<br>   │  ├─ 0.25                    136.7 ns      │ 142.7 ns<br>   │  ╰─ 0.75                    121.8 ns      │ 125.3 ns<br>   ├─ 1000                                     │<br>   │  ├─ 0.25                    128.2 ns      │ 132.7 ns<br>   │  ╰─ 0.75                    122.7 ns      │ 137.7 ns<br>   ╰─ 10000                                    │<br>      ├─ 0.25                    131.7 ns      │ 138.7 ns<br>      ╰─ 0.75                    137.7 ns      │ 142.7 ns</code></pre>
+<pre class="language-text"><code class="language-text">toposort                fastest       │ median<br>├─ gryf_dfs_random                    │<br>│  ├─ 100                             │<br>│  │  ├─ 0.05           13.99 µs      │ 14.2 µs<br>│  │  ├─ 0.5            72.23 µs      │ 78.33 µs<br>│  │  ╰─ 0.95           103.8 µs      │ 107.9 µs<br>│  ╰─ 1000                            │<br>│     ├─ 0.05           595.6 µs      │ 639.9 µs<br>│     ├─ 0.5            4.869 ms      │ 5.422 ms<br>│     ╰─ 0.95           10.95 ms      │ 11.16 ms<br>├─ gryf_kahn_random                   │<br>│  ├─ 100                             │<br>│  │  ├─ 0.05           4.138 µs      │ 4.396 µs<br>│  │  ├─ 0.5            19.66 µs      │ 20.84 µs<br>│  │  ╰─ 0.95           33.21 µs      │ 35.21 µs<br>│  ╰─ 1000                            │<br>│     ├─ 0.05           215.2 µs      │ 234.6 µs<br>│     ├─ 0.5            1.871 ms      │ 2.004 ms<br>│     ╰─ 0.95           3.546 ms      │ 3.679 ms<br>╰─ petgraph_dfs_random                │<br>   ├─ 100                             │<br>   │  ├─ 0.05           2.699 µs      │ 2.753 µs<br>   │  ├─ 0.5            15.76 µs      │ 15.88 µs<br>   │  ╰─ 0.95           27.25 µs      │ 27.4 µs<br>   ╰─ 1000                            │<br>      ├─ 0.05           210.7 µs      │ 222.5 µs<br>      ├─ 0.5            2.584 ms      │ 2.797 ms<br>      ╰─ 0.95           7.543 ms      │ 12.28 ms</code></pre>
+</details>
+<p>I don’t think that anyone should draw some hard conclusions from these experiments.
+The benchmarks were made without too much thought, just to see how gryf is roughly doing.
+Once I turn my focus to performance, I will make sure to create a more representative benchmark with better analysis.
+Only after then it will make sense to claim anything else than “it’s promising”.</p>
+<h2 id="algorithms">Algorithms <a class="header-anchor" href="#algorithms">#</a></h2>
+<p>There are not many algorithms in gryf at this moment.
+The main focus was on getting the fundamentals right (and still it’s not fully there) rather than on adding algorithm after algorithm.
+<strong>This is where you can contribute the most</strong>.
+If you would like to try gryf, lack an algorithm and you are up to the challenge of implementing it, don’t hesitate!</p>
+<p>In the first version of gryf, there are these two problems/algorithms available:</p>
+<ul>
+<li>Single source shortest paths (Dijkstra, Bellman–Ford, BFS).</li>
+<li>Topological sorting (Kahn, DFS).</li>
+<li>Graph connectivity (DFS).</li>
+<li>Cycle detection (DFS) and collection (BFS).</li>
+</ul>
+<p>Sometimes an API design decision of a problem that must be supported by all (or most) algorithm implementations requires an “innovative” solution.
+For example, textbook Bellman–Ford only considers directed graphs but in gryf it should support undirected graphs as much as feasible.
+Or a post-order DFS on transposed graph is used for topological sorting to achieve maximum laziness.</p>
+<h2 id="conclusion">Conclusion <a class="header-anchor" href="#conclusion">#</a></h2>
+<p>Phew, that was long!
+That you are still here, even if you skipped some parts, indicates that you are interested in gryf ❤.
+In that case I encourage you to try it!</p>
+<p>I am very curious to hear the feedback and insights from you once you do that.
+Did you encounter any hiccups?
+Something missing?
+Confusing compiler error?
+Surprising behavior?
+An unnecessarily complicated concept?
+For anything that you think could be better please file an <a href="https://github.com/pnevyk/gryf/issues">issue</a> on GitHub.</p>
+<p>One opportunity to find bugs in gryf is to replace petgraph (or any other graph library) with it and see if your project’s tests fail after that.
+My plan is to do exactly that on <a href="https://crates.io/crates/petgraph/reverse_dependencies">most downloaded reverse dependencies of petgraph</a>.
+Not only for running tests, but also to identify all inconveniences and missing pieces during the migration.
+Feel free to ping me if I can help with it in your project.</p>
+<p>Keep in mind that gryf is very much immature.
+I keep finding rough edges that need to be refined.
+There are missing core features (e.g., mutable iteration).
+I have no doubts there are bugs to be discovered.</p>
+<p>One point I want to address is why to create a new graph library in Rust.
+Although the situation is not <a href="https://www.reddit.com/r/rust/comments/10y9t9v/there_are_87_bloom_filter_crates_strategies_for/">as bad as for bloom filters</a>,
+it’s not uncommon that someone comes with a new crate for graphs which gets later abandoned<sup class="footnote-ref"><a href="#fn6" id="fnref6">[6]</a><span class="footnote-content">From 7 crates I found, 2 are active, 1 is not really active but I wouldn’t call it abandoned and 4 are not active, from which 3 got their last update in 2021 – what a year of Rust graph libraries it must have been.</span></sup>.</p>
+<p>And that’s fine, don’t get me wrong.
+But what makes gryf an exception that will not meet the same end?
+I am convinced that it is competitive with petgraph in terms of user experience and performance and, on top of that,
+comes with some new ideas that, in my opinion, makes it appealing.
+It’s also not a single weekend project I threw into the world – I have spent a lot of time and effort on it.</p>
+<p>Developing a new library from scratch allows wild experimentation, and whoa, some of the changes were quite intense and substantial.
+This wouldn’t be possible to do in an existing crate which has (many) real users.
+But if the features of gryf catch attention of users and petgraph will be willing to adopt them,
+then I will be in favor focusing on petgraph to avoid unnecessary competition.</p>
+<p>I hope that you will have great time with gryf if you use it and it will help you to get your project done!</p>
+<h2 id="acknowledgements">Acknowledgements <a class="header-anchor" href="#acknowledgements">#</a></h2>
+<p>I would also like to dedicate a part of this post to thank some people.</p>
+<p>First and foremost, everyone who contributed to the design of petgraph, which was (I assume) mainly <a href="https://github.com/bluss">bluss</a> as the original author of the library.
+And also to all <a href="https://github.com/petgraph/petgraph/graphs/contributors">contributors</a> and <a href="https://github.com/orgs/petgraph/people">maintainers</a> who help to keep this crate being useful.
+Petgraph was the main inspiration on many design and implementation aspects, as anyone likely realizes.
+When I contributed the matching algorithm, some of my choices there influenced how I did things in gryf.</p>
+<p>Then to <a href="https://github.com/maminrayej">maminrayej</a>, the author of <a href="https://github.com/maminrayej/prepona">prepona</a> library, in which the idea of separating graph and its storage was introduced to me,
+and their <a href="https://www.reddit.com/r/rust/comments/mzgn79/another_graph_library/">announcement on Reddit</a>, where I learned about it.
+This clever design choice and some of my <a href="https://www.reddit.com/r/rust/comments/mzgn79/comment/gw5h5h5/">ideas</a> sparked from a reaction to it inspired me and were actually <em>the</em> reason why I decided to start this whole journey.</p>
+<p>Only tangentially related, but to everyone who helped to make <a href="https://blog.rust-lang.org/2022/10/28/gats-stabilization.html">generic associated types</a> (GATs) stable in Rust, as they play an important role in the design of gryf.
+I remember the excitement when I started<sup class="footnote-ref"><a href="#fn7" id="fnref7">[7]</a><span class="footnote-content"><a href="https://github.com/pnevyk/gryf/commit/c232873adb4be7189bce3bed9dbfbffc390479e8">Back in spring of 2021</a>. Had some long breaks during that period, not going to pretend otherwise.</span></sup> to work on gryf and added these two lines to <code>lib.rs</code></p>
+<pre class="language-rust"><code class="language-rust"><span class="token attribute attr-name">#![allow(incomplete_features)]</span><br><span class="token attribute attr-name">#![feature(generic_associated_types)]</span></code></pre>
+<p>and the same if not stronger excitement after some 20 months when I could remove the second line and make gryf available for stable Rust.
+I definitely needed to fix my code occasionally after a nightly version update and I might even have encountered an internal compiler error<sup class="footnote-ref"><a href="#fn8" id="fnref8">[8]</a><span class="footnote-content">Sadly, I don’t have a reference of it, so it may be just the skill of hallucination learned by me from today’s LLMs.</span></sup>.
+But it was a great time.</p>
+<p>You are awesome!</p>
+<hr class="footnotes-sep">
+<section class="footnotes">
+<ol class="footnotes-list">
+<li id="fn1" class="footnote-item"><p>But I have no doubts that I must have felt very clever when I saw the chapter about Fluent API / builder pattern in the talk describing exactly my case. <a href="#fnref1" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn2" class="footnote-item"><p>I learned this the hard way by actually implementing the representations and then having fuzzing and property-based testing discovering new bugs again and again. <a href="#fnref2" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn3" class="footnote-item"><p>Support for <code>no_std</code> is very compelling for me and I believe that the design of gryf supports it.
+However, further work and reorganization is needed to achieve this goal. <a href="#fnref3" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn4" class="footnote-item"><p>Associated constants could be used as well. <a href="#fnref4" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn5" class="footnote-item"><p>For fuzzing, I let them run for lower tens of minutes.
+While I am sure they could be running even longer, I consider it enough in the current phase of gryf’s life. <a href="#fnref5" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn6" class="footnote-item"><p>From 7 crates I found, 2 are active, 1 is not really active but I wouldn’t call it abandoned and 4 are not active, from which 3 got their last update in 2021 – what a year of Rust graph libraries it must have been. <a href="#fnref6" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn7" class="footnote-item"><p><a href="https://github.com/pnevyk/gryf/commit/c232873adb4be7189bce3bed9dbfbffc390479e8">Back in spring of 2021</a>. Had some long breaks during that period, not going to pretend otherwise. <a href="#fnref7" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn8" class="footnote-item"><p>Sadly, I don’t have a reference of it, so it may be just the skill of hallucination learned by me from today’s LLMs. <a href="#fnref8" class="footnote-backref">↩︎</a></p>
+</li>
+</ol>
+</section>
+
+</article>
+
+ </main>
+ <footer>
+ <p class="copyright">Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">Creative Commons</a> | Feel free to share</p>
+ <div class="links">
+ <a href="https://github.com/pnevyk" target="_blank"><i class="fa fa-github"></i></a>
+ <a href="https://twitter.com/pnevyk" target="_blank"><i class="fa fa-twitter"></i></a>
+ <a href="/feed.xml" target="_blank"><i class="fa fa-rss"></i></a>
+ </div>
+ </footer>
+
+ <script src="/static/js/main.js"></script>
+ <script defer src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.js" integrity="sha384-g7c+Jr9ZivxKLnZTDUhnkOnsh30B4H0rpLUpJ4jAIKs4fnJI+sEnkvrMWph2EDg4" crossorigin="anonymous"></script>
+</body>
+</html>

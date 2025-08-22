@@ -10,6 +10,22 @@
     
     
     <item>
+      <title>Introducing gryf: A new graph library for Rust</title>
+      <link>https://pnevyk.github.io/posts/introducing-gryf/</link>
+      <description>
+        &lt;p&gt;&lt;a href=&quot;https://crates.io/crates/gryf&quot;&gt;Gryf&lt;/a&gt; is a new graph data structure
+library for Rust aspiring to be &lt;em&gt;convenient&lt;/em&gt;, &lt;em&gt;versatile&lt;/em&gt;, &lt;em&gt;correct&lt;/em&gt; and &lt;em&gt;performant&lt;/em&gt;.
+This post describes what it is, what its state is, why to use it and some miscellaneous bits.
+Besides merely introducing it, I will also talk about details that are interesting to me and I am proud of.&lt;/p&gt;
+    </description>
+      <pubDate>Fri, 22 Aug 2025 00:00:00 +0000</pubDate>
+      <dc:creator>Petr Nevyhoštěný</dc:creator>
+      <guid>https://pnevyk.github.io/posts/introducing-gryf/</guid>
+    </item>
+    
+    
+    
+    <item>
       <title>Checklist: Sending email</title>
       <link>https://pnevyk.github.io/posts/checklist-email/</link>
       <description>
