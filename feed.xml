@@ -10,6 +10,22 @@
     
     
     <item>
+      <title>Messy world outside and domain-centric design</title>
+      <link>https://pnevyk.github.io/posts/domain-centric-design/</link>
+      <description>
+        &lt;p&gt;This post describes the motivation behind software design principles like domain-driven design or layered and hexagonal architectures.
+The core idea is nothing new, but I strongly focus on the &lt;em&gt;why&lt;/em&gt;, while hiding it under a pile of &amp;quot;story telling&amp;quot;.
+I think that this form and goal is useful because many people newly introduced to mentioned techniques struggle to appreciate their benefits while disliking apparent complication and boilerplate.
+If it&#39;s you, reading this will hopefully help you to dismiss your doubts.&lt;/p&gt;
+    </description>
+      <pubDate>Wed, 01 Oct 2025 00:00:00 +0000</pubDate>
+      <dc:creator>Petr Nevyhoštěný</dc:creator>
+      <guid>https://pnevyk.github.io/posts/domain-centric-design/</guid>
+    </item>
+    
+    
+    
+    <item>
       <title>Introducing gryf: A new graph library for Rust</title>
       <link>https://pnevyk.github.io/posts/introducing-gryf/</link>
       <description>

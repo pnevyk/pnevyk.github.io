@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+ <title>Messy world outside and domain-centric design | The bytes // they want you</title>
+ <meta name="description" content="@pnevyk's words on programming">
+ <link rel="icon" type="image/png" href="/static/img/favicon.png" />
+ <link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" rel="stylesheet">
+ <link href="https://unpkg.com/prismjs@1.20.0/themes/prism-okaidia.css" rel="stylesheet" media="(prefers-color-scheme: dark)">
+ <link href="https://unpkg.com/prismjs@1.20.0/themes/prism.css" rel="stylesheet" media="(prefers-color-scheme: light)">
+ <link href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.css" rel="stylesheet" integrity="sha384-AfEj0r4/OFrOo5t7NnNe46zW/tFgW6x/bCJG8FqQCEo3+Aro6EYUG4+cU+KJWu/X" crossorigin="anonymous">
+ <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+ <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700&display=swap" rel="stylesheet">
+ <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+ <link href="/static/css/main.css" rel="stylesheet">
+ 
+</head>
+<body lang="en">
+ <header>
+ <h1><a class="title" href="/">The bytes // they want you</a></h1>
+ <p class="subtitle"><a href="https://twitter.com/pnevyk" target="_blank">@pnevyk’s</a> words on programming</p>
+ </header>
+ <main id="main">
+ <div id="progress"></div>
+<article style="view-transition-name: post-messy-world-outside-and-domain-centric-design;">
+ <h1>Messy world outside and domain-centric design</h1>
+ <div class="metadata">
+ <span>Published on <em><time datetime="2025-10-01">1 October 2025</time></em></span>
+ <span>About <em>28 min</em> reading time</span>
+ </div>
+ <div class="metadata">
+ 
+ Topics:
+ 
+ 
+ <em>#software engineering</em>
+ 
+ <em>#system design</em>
+ 
+ <em>#essay</em>
+ 
+ </div>
+
+ <p>This post describes the motivation behind software design principles like domain-driven design or layered and hexagonal architectures.
+The core idea is nothing new, but I strongly focus on the <em>why</em>, while hiding it under a pile of “story telling”.
+I think that this form and goal is useful because many people newly introduced to mentioned techniques struggle to appreciate their benefits while disliking apparent complication and boilerplate.
+If it’s you, reading this will hopefully help you to dismiss your doubts.</p>
+<p>The article is very verbose compared to a ~simple message it tries to convey.
+That said, I stand behind the extensiveness of it because I think it’s important when struggling to find the incentive to follow these principles.
+But at the same time, I summarize the core points in a compressed form in the <a href="#tl%3Bdr">TL;DR</a> section where you can skip to if you feel like giving up while reading the article or before even trying.</p>
+<details class="toc">
+<summary>Table of contents</summary>
+<nav class="table-of-contents"><ul><li><a href="#why-we-build-software">Why we build software </a></li><li><a href="#problem-solutions-exist-in-the-real-world">Problem solutions exist in the real world </a></li><li><a href="#common-interfaces">Common interfaces </a></li><li><a href="#focus-on-domain-over-technology">Focus on domain over technology </a></li><li><a href="#architectures">Architectures </a></li><li><a href="#why-bother%3F">Why bother? </a></li><li><a href="#concluding-remarks">Concluding remarks </a></li><li><a href="#tl%3Bdr">TL;DR </a></li></ul></nav></details>
+<h2 id="why-we-build-software">Why we build software <a class="header-anchor" href="#why-we-build-software">#</a></h2>
+<p>I will start the article with a slightly philosophical question and that is: Why we build software anyway?
+I guess there are various motivations driving people to write code and build software.
+But a major and objective one is that we do that to solve someone’s <em>problem</em>.</p>
+<p>And problems have a <em>domain</em>.
+The term (application) domain is actually quite tricky to define, but you can go read how people managed in the <a href="https://en.wikipedia.org/wiki/Domain_(software_engineering)">Wikipedia article</a>.
+Instead of trying myself, I will present the concept on examples.</p>
+<p>Let’s say that someone’s problem is to have a tasty affordable beer in a nearby pub.
+That’s actually what I deal with quite often.
+Not sure about the business potential of a hypothetical application for that, but this problem still has <em>a</em> domain.
+Possible entities and their attributes and relationships are depicted in the following picture:</p>
+<figure><img src="/static/img/domain-pub1.png" style="max-width: 66%" alt="A domain for "I want to have a tasty affordable beer in a nearby pub" problem.
+"><figcaption><p>A domain for “I want to have a tasty affordable beer in a nearby pub” problem.</p>
+</figcaption></figure>
+<p>There is a person who has certain preference for different beers.
+This captures the inconspicuous adjective “tasty”.
+We also need to know what pubs offer which beers.
+And to satisfy the requirement “nearby”, we need to know the location of the person and all pubs.</p>
+<p>Now imagine a slightly different problem: Pubs need to know if some of their stored beer is going to get spoiled.
+This is something somebody likely built a software for already.
+It is somewhat related to the first problem but there are definitely differences, so let’s see a potential domain for it:</p>
+<figure><img src="/static/img/domain-pub2.png" style="max-width: 66%" alt="A domain for "Pubs need to predict if some of the stored beer is going to get spoiled" problem.
+"><figcaption><p>A domain for “Pubs need to predict if some of the stored beer is going to get spoiled” problem.</p>
+</figcaption></figure>
+<p>Again, we have pubs and beers.
+But instead of offering, they are connected through storage relationship.
+We also track the sales so that we know how much beer is left.
+And the concepts of calendar and when the pub is open help us make better predictions, because it’s not helpful to indicate that the beer will get spoiled when the pub is closed.</p>
+<p>This is only an example of how to capture this domain.
+We could choose a different solution for the calendar entity, for example by defining opening hours as rules (Mon–Fri, 16:00–22:00) with exceptions.
+Or we could track how much beer is left in a different way too.
+This is exactly the kind of questions you ask when modeling the domain:
+What do we need (in our domain) to be able to solve the problem?</p>
+<h2 id="problem-solutions-exist-in-the-real-world">Problem solutions exist in the real world <a class="header-anchor" href="#problem-solutions-exist-in-the-real-world">#</a></h2>
+<p>The challenge is that the problem solution exists in the real world.
+It would be nice to stay inside our cave and carefully design perfect domains, but that would help no one except maybe our own <s>ego</s> aesthetic senses.
+So we need to meet the outside reality.
+And that brings some troubles, for instance</p>
+<ul>
+<li>JSON format doesn’t support a native datetime type,</li>
+<li>Efficient data table component for web is very difficult to implement and yet it displays a conceptually simple structure,</li>
+<li>Legacy systems have inappropriate APIs but you still need to use them,</li>
+<li>Different processors have different instruction sets even if they represent common operations like addition.</li>
+</ul>
+<p>And many more, I don’t need to tell you…</p>
+<p>The situation that we find ourselves in thus looks like this:</p>
+<figure><img src="/static/img/domain-real-world.png" style="max-width: 80%" alt="Perfect domain versus reality.
+"><figcaption><p>Perfect domain versus reality.</p>
+</figcaption></figure>
+<p>We have our nice and clean domain full of sunshine, rainbows and unicorns.
+And it’s surrounded by this messy and dangerous outside world that we need to deal with.</p>
+<p>But it’s not time to give up.
+What we need to do is to build up a fence and <em>isolate</em> the domain and business logic from technical and implementation details.</p>
+<p>Suddenly, the situation becomes this:</p>
+<figure><img src="/static/img/domain-separation.png" style="max-width: 80%" alt="Isolate the domain and business logic from technical details.
+"><figcaption><p>Isolate the domain and business logic from technical details.</p>
+</figcaption></figure>
+<p>What it allows us to do is to fully focus on designing the right domain for the problem at hand.
+It’s also recommended to cooperate with the subject matter experts so that you can build the shared understanding and standard vocabulary<sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a><span class="footnote-content">It’s annoying and unnecessary cognitive load when you need to use different terms for the same concept in the code, in the team and with the customer, just because you didn’t think about the most fitting name upfront.</span></sup>.
+Since the implementation details are ignored during this phase, you can really speak the same language as the experts, without them being lost in technical jargon. More likely it will be you who is lost in the subject matter concepts.</p>
+<p>Once the domain is designed, then it’s time to go look for appropriate technologies that fit that domain best and fulfill all requirements.</p>
+<p>Now there is a new problem.
+The isolation that we introduced is nice, but we still need to interact with the outside world.
+Because solutions that do not are useless as they basically become something called</p>
+<blockquote>
+<p><strong>Schrödinger’s app</strong> is correct and buggy at the same time, you don’t know because you can’t look.</p>
+<p> — me</p>
+</blockquote>
+<p>To resolve this problem we need to introduce <em>thin</em> layers to translate gibberish of the external objects to aesthetic poetry of domain objects.
+The emphasis on the word “thin” is quite important.
+These interfaces between the outside and inside then handle the details and limitations of the chosen technology.</p>
+<p>And we finally arrive to the final situation:</p>
+<figure><img src="/static/img/domain-meets-real-world.png" style="max-width: 80%" alt="Thin interfaces between the outside and inside.
+"><figcaption><p>Thin interfaces between the outside and inside.</p>
+</figcaption></figure>
+<p>We have our perfect domain that is still isolated from the outside world.
+But we also have those little portals through which things enter and exit.</p>
+<h2 id="common-interfaces">Common interfaces <a class="header-anchor" href="#common-interfaces">#</a></h2>
+<p>Now it’s the right time to turn an abstract essay into concrete terms.
+What are those little portals that allow the communication with the outside world?
+Let’s see some examples.</p>
+<p><a href="https://www.umlboard.com/design-patterns/repository.html">Repository design pattern</a> is a great one as it can be used in <strong>virtually any context</strong>.
+It’s an abstraction layer over a data store, be it a database, filesystem or even other software system.
+It handles all intricacies of the underlying storage while providing a nice and clean CRUD API.</p>
+<p>In <strong>server-side APIs</strong>, there are controllers<sup class="footnote-ref"><a href="#fn2" id="fnref2">[2]</a><span class="footnote-content">I was really surprised that I failed to find a good generic resource on the controllers concept that is less tied to the original definition in the MVC pattern, traditionally used for UI applications, and more focusing on its role in server-side APIs.
+So here is at least documentation for a few, hand-picked frameworks: <a href="https://docs.nestjs.com/controllers">NestJS</a>, <a href="https://learn.microsoft.com/en-us/aspnet/core/web-api/">ASP.NET</a>, <a href="https://guides.rubyonrails.org/action_controller_overview.html">Ruby on Rails</a>, <a href="https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller.html">Spring Boot</a>.</span></sup> for inbound requests and <a href="https://martinfowler.com/articles/gateway-pattern.html">gateways</a> for outbound requests.
+They should handle the low-level details of the communication protocol and format and interact with the domain core.</p>
+<p><strong>SPA frontends</strong> have the same needs. Pure UI components represent what users see, API services fetch data, global state manager (like <a href="https://redux.js.org/">Redux</a> or <a href="https://mobx.js.org/README.html">MobX</a>) – well – manages global state<sup class="footnote-ref"><a href="#fn3" id="fnref3">[3]</a><span class="footnote-content">You may wonder what “messy outside world” challenges are related to the global state management in SPA applications. Aren’t we free to carelessly store anything as JavaScript values and objects? Well, if you want features like <a href="https://redux.js.org/faq/organizing-state#can-i-put-functions-promises-or-other-non-serializable-items-in-my-store-state">persistence to local storage or time-travel debugging</a>, then not.</span></sup>.
+With libraries like React, it requires more discipline than the framework’s guardrails to avoid mixing business logic with UI definition or letting server-fetched DTOs slip through into the domain.
+Sadly, it’s easy to <a href="https://martinfowler.com/articles/modularizing-react-apps.html">fail at that</a>.</p>
+<p><strong>Games</strong> use <a href="https://docs.unity3d.com/Manual/Input.html">input managers</a> to map raw key presses, mouse clicks, joystick movements, or any other possible kind of input, to events like jump, draw a card or pause the game.
+Because the game logic shouldn’t really care about which input caused the game action, only that the game action was requested.</p>
+<p>Programming language <strong>compilers</strong>, especially if they aim to be widely-applicable, traditionally use <a href="https://en.wikipedia.org/wiki/Compiler#Three-stage_compiler_structure">three-stage architecture</a> which separates the front (source language → intermediate representation), the middle (optimizations) and the back (IR → machine code) components<sup class="footnote-ref"><a href="#fn4" id="fnref4">[4]</a><span class="footnote-content">I acknowledge that compiler frontend and backend are usually anything but thin, which was my recommendation for interface layer. But it’s still worth to strive for making it as thin as constraints of the problem allow. This can be supported by generalizing the algorithms used in these components and provide way how these generalizations interact with specific implementations.</span></sup>.
+Note that procedures like register allocations have traditionally been part of the compiler backends, but it’s possible (<a href="https://github.com/bytecodealliance/regalloc2/blob/4c2a954b4cb416b99fb23f56e0b59fc68770c7b7/doc/GENERAL.md">regalloc2</a>, <a href="https://arxiv.org/abs/2505.22610">TPDE</a>) to implement it generically in the domain and only interface it with the environment (number of registers, specific constraints) which demonstrates well the core idea of this article.</p>
+<p>In the world of <strong>embedded systems</strong>, there are various microcontrollers or other kinds of devices with specialized designs and wildly different properties and constraints.
+At the same time, the operations done on these devices are often common, like blinking a LED, write and read to a communication bus, or maybe something more than that.
+That’s where <a href="https://docs.rs/embedded-hal/">hardware abstraction layers (HALs)</a> come in so that your embedded software can focus on the logic.</p>
+<p>In my proof-of-concept graph library, the graph storage is <a href="https://github.com/pnevyk/gryf/blob/8aec5bad1da1be5be9cb64d536145bd3a94bf4c6/DESIGN.md#separation-of-graph-storage-and-semantics">hidden behind a shared interface</a>.
+In theory, it could really be anything – a standard in-memory representation, a JSON file or computed on the fly.
+And the algorithms (the domain) only require the standard graph operations (get neighbors, add edge, etc.).</p>
+<p>Wow, that’s a long list (although far from exhaustive).
+It shows that this general pattern is applicable in wide range of software contexts.
+It’s also worth to summarize in a picture:</p>
+<figure><img src="/static/img/domain-common-interfaces.png" style="max-width: 100%" alt="Common interfaces examples. HAL didn't make it because it didn't fit into 3 x 3 grid, sorry.
+"><figcaption><p>Common interfaces examples. HAL didn’t make it because it didn’t fit into 3 × 3 grid, sorry.</p>
+</figcaption></figure>
+<p>And now something to take away:
+It’s absolutely essential that the external types (red-colored in the illustration) <strong>do not cross the interface boundary</strong>.
+By absolutely essential, I mean highly recommended.</p>
+<aside class="note"><h3>by the way&hellip;</h3><div><p>It’s by no means simple to design an interface well.
+But this is definitely out of scope of this article.
+Try to look somewhere else.
+Good luck.</p>
+</div></aside><h2 id="focus-on-domain-over-technology">Focus on domain over technology <a class="header-anchor" href="#focus-on-domain-over-technology">#</a></h2>
+<p>After talking about concrete terms, I would like to get back to modeling the domain and make a case why it’s a good approach to prioritize focus on the aspects of the problem and solution instead of technical constraints<sup class="footnote-ref"><a href="#fn5" id="fnref5">[5]</a><span class="footnote-content">A fascinating read related to this is <a href="https://netflixtechblog.com/uda-unified-data-architecture-6a6aee261d8d">Model Once, Represent Everywhere</a>. There it’s described how Netflix tackles the challenge that each system models core business concepts differently and in isolation without shared understanding. Their solution is to define domain models once and use these definitions to generate schemas in specific technologies for specific systems (and more). Of course, this particular solution needed for Netflix scale is not a silver bullet, but it shows how this topic is important.</span></sup>.
+I will present some code examples too and they will be in TypeScript, but it’s more or less pseudocode<sup class="footnote-ref"><a href="#fn6" id="fnref6">[6]</a><span class="footnote-content">I mean on the level of pseudocode in this context, not that every code in TypeScript is pseudocode.</span></sup>.</p>
+<p>Let’s revisit the examples from the very beginning of this article.</p>
+<p>In the “I want beer” problem, we need to know the location of the user to be able to find pubs nearby.
+In the modeling phase, that’s all we need to care about.
+Once that’s clear, we can think about the technical decisions.
+For example, the user’s location will likely be retrieved from some GPS-based service rather than a database as people typically keep moving, at least a little.</p>
+<p>In the “beer expiration” problem, we keep track of the dates when the beer was stored.
+Whether the dates will be stored as ISO strings in UTC, local time strings, numeric timestamps or even a native data type if our persistence technology supports it, we don’t care.
+That’s something to decide in the implementation phase.</p>
+<p>Now let’s see another example.
+Imagine a scenario where we are asked to track books and their authors.
+Books can also reference each other.
+Here is a code representation of such domain:</p>
+<pre class="language-ts"><code class="language-ts"><span class="token keyword">type</span> <span class="token class-name">Author</span> <span class="token operator">=</span> <span class="token punctuation">{</span><br>    name<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">,</span><br><span class="token punctuation">}</span><br><br><span class="token keyword">type</span> <span class="token class-name">Book</span> <span class="token operator">=</span> <span class="token punctuation">{</span><br>    name<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">,</span><br>    authors<span class="token operator">:</span> Author<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span><br>    references<span class="token operator">:</span> Book<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span><br><span class="token punctuation">}</span></code></pre>
+<p>So an author has a name and a book has a name, array of authors and array of references to other books.
+The type of <code>authors</code> and <code>references</code> array are really the respective entities, not some kind of identification.
+This is convenient because whenever we have a reference to a book, we can very easily get names of its references without additional indirection.</p>
+<p>We can think of multiple implementation choices for this domain without changing it.</p>
+<p>To <strong>persist</strong> the data, we can use</p>
+<ul>
+<li>Relational database with its concepts like primary and foreign keys and data stored in tables and columns,</li>
+<li>JSON file stored in a blob storage if our data won’t change at all and we don’t need optimized filtering, or</li>
+<li>Graph database if we realize that our application needs complicated graph operations on the “book references” relationship.</li>
+</ul>
+<p>To <strong>transfer</strong> the data from a backend to a client, we can use</p>
+<ul>
+<li>JSON over HTTP which is probably the most used option nowadays,</li>
+<li>GraphQL if it’s clear that the client needs many different ways how to query the data, or</li>
+<li>Protobuf over gRPC if we expect that the data are sent only between backend services.</li>
+</ul>
+<p>To <strong>display</strong> the data in a UI, we can use</p>
+<ul>
+<li>Simple table if that’s enough, or</li>
+<li><a href="https://observablehq.com/@d3/temporal-force-directed-graph">Temporal force-directed graph</a> if we want to be fancy and emphasize the “book references” relationship.</li>
+</ul>
+<p>These are all important decisions to make when building software.
+But none of these options meaningfully influenced our problem solution domain.
+It should be the responsibility of the interfaces to translate our domain to these technologies.</p>
+<p>To repeat: Use the <strong>best representation for domain objects</strong> disregarding the outside world.
+Or at least think about it and then make compromises if needed.</p>
+<p>Below I collected a few code-level better/worse examples that try to communicate what I mean by that statement.
+They are really only examples, not meant to be followed like the universal truth.
+Make sure to see both variants, both code and commentary, to fully appreciate the difference.
+If you get tired from looking at code, feel free to skip to the end of this section.</p>
+<div class="tabs" data-tab-context="validated-types">
+<div class="tabs-header">
+<span class="tab-label" data-tab-id="better">Better</span><span class="tab-label" data-tab-id="worse">Worse</span>
+</div>
+<div class="tab-content" data-tab-id="better">
+<pre class="language-ts"><code class="language-ts"><span class="token keyword">type</span> <span class="token class-name">TemperatureUnit</span> <span class="token operator">=</span> <span class="token string">"K"</span> <span class="token operator">|</span> <span class="token string">"°C"</span> <span class="token operator">|</span> <span class="token string">"°F"</span><span class="token punctuation">;</span><br><br><span class="token keyword">function</span> <span class="token function">validate</span><span class="token punctuation">(</span>temperatureUnit<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">)</span><span class="token operator">:</span> TemperatureUnit <span class="token punctuation">{</span><span class="token punctuation">}</span><br><span class="token keyword">function</span> <span class="token function">requireValid</span><span class="token punctuation">(</span>temperatureUnit<span class="token operator">:</span> TemperatureUnit<span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token punctuation">}</span></code></pre>
+<p>The temperature unit type is constrained only to valid values and the code follows the <a href="https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/">parse don’t validate</a> pattern<sup class="footnote-ref"><a href="#fn7" id="fnref7">[7]</a><span class="footnote-content">Specifically for TypeScript, I recommend to check the <a href="https://egghead.io/blog/using-branded-types-in-typescript">branded types</a> technique.
+Other mainstream programming languages use nominal type system where we can create a new type and the typechecker makes sure that the values are really of the correct type.
+But TypeScript uses structural type system and branded types are needed for extra safety.</span></sup>.
+Other use cases include valid email, existing user, or objects with optional properties filled in.</p>
+</div>
+<div class="tab-content" data-tab-id="worse">
+<pre class="language-ts"><code class="language-ts"><br><br><br><span class="token keyword">function</span> <span class="token function">assumeValid</span><span class="token punctuation">(</span>temperatureUnit<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><span class="token punctuation">}</span></code></pre>
+<p>The validity of temperature unit is only assumed.
+But as you may know, not all strings are valid temperature units.
+Nothing prevents the call-site to pass an arbitrary string to the function and make it explode.</p>
+</div>
+</div>
+<div class="tabs" data-tab-context="specialized-types">
+<div class="tabs-header">
+<span class="tab-label" data-tab-id="better">Better</span><span class="tab-label" data-tab-id="worse">Worse</span>
+</div>
+<div class="tab-content" data-tab-id="better">
+<pre class="language-ts"><code class="language-ts"><span class="token keyword">type</span> <span class="token class-name">Command</span> <span class="token operator">=</span> <span class="token punctuation">{</span><br>    startedAt<span class="token operator">:</span> ZonedDateTime<span class="token punctuation">,</span><br>    elapsed<span class="token operator">:</span> Duration<span class="token punctuation">,</span><br><span class="token punctuation">}</span></code></pre>
+<p>Specialized types (<code>ZonedDateTime</code>, <code>Duration</code>) are used to represent values with desired semantics.
+These provide convenient API (e.g., convert to a different timezone or get number of milliseconds) and reduce the risk of misuse.</p>
+</div>
+<div class="tab-content" data-tab-id="worse">
+<pre class="language-ts"><code class="language-ts"><span class="token keyword">type</span> <span class="token class-name">Command</span> <span class="token operator">=</span> <span class="token punctuation">{</span><br>    startedAt<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">,</span><br>    elapsedMs<span class="token operator">:</span> <span class="token builtin">number</span><span class="token punctuation">,</span><br><span class="token punctuation">}</span></code></pre>
+<p>Primitive value types are used for representing datetime (probably an ISO string, who knows?) and elapsed time (ok, at least the unit is in the name).
+This representation is likely what must be used for the JSON payload, but that should not influence the domain type.</p>
+</div>
+</div>
+<div class="tabs" data-tab-context="namespaces">
+<div class="tabs-header">
+<span class="tab-label" data-tab-id="better">Better</span><span class="tab-label" data-tab-id="worse">Worse</span>
+</div>
+<div class="tab-content" data-tab-id="better">
+<pre class="language-ts"><code class="language-ts"><span class="token keyword">type</span> <span class="token class-name">Temperature</span> <span class="token operator">=</span> <span class="token punctuation">{</span><br>    value<span class="token operator">:</span> <span class="token builtin">number</span><span class="token punctuation">,</span><br>    unit<span class="token operator">:</span> TemperatureUnit<span class="token punctuation">,</span><br><span class="token punctuation">}</span><br><br><span class="token keyword">type</span> <span class="token class-name">Measurement</span> <span class="token operator">=</span> <span class="token punctuation">{</span><br>    temperature<span class="token operator">:</span> Temperature<span class="token punctuation">,</span><br><span class="token punctuation">}</span></code></pre>
+<p>All temperature-related information is stored in one object.
+These two properties should always come together as knowing the value without the unit is prone to wrong assumptions.</p>
+</div>
+<div class="tab-content" data-tab-id="worse">
+<pre class="language-ts"><code class="language-ts"><span class="token keyword">type</span> <span class="token class-name">Measurement</span> <span class="token operator">=</span> <span class="token punctuation">{</span><br>    temperatureValue<span class="token operator">:</span> <span class="token builtin">number</span><span class="token punctuation">,</span><br>    temperatureUnit<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">,</span><br><span class="token punctuation">}</span></code></pre>
+<p>All properties are inlined on the same level.
+This is how it might be stored in a relational database, because they use tables and columns, but again that should not influence the domain type.</p>
+</div>
+</div>
+<div class="tabs" data-tab-context="integration">
+<div class="tabs-header">
+<span class="tab-label" data-tab-id="better">Better</span><span class="tab-label" data-tab-id="worse">Worse</span>
+</div>
+<div class="tab-content" data-tab-id="better">
+<pre class="language-ts"><code class="language-ts"><span class="token keyword">type</span> <span class="token class-name">Role</span> <span class="token operator">=</span> <span class="token punctuation">{</span><br>    permissions<span class="token operator">:</span> Permission<span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span><br><span class="token punctuation">}</span></code></pre>
+<p>From the domain perspective, roles contain permissions, regardless what constitutes a permission.
+This is captured in the type.</p>
+</div>
+<div class="tab-content" data-tab-id="worse">
+<pre class="language-ts"><code class="language-ts"><span class="token keyword">type</span> <span class="token class-name">Role</span> <span class="token operator">=</span> <span class="token punctuation">{</span><br>    permissions<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span><br><span class="token punctuation">}</span><br><br><span class="token keyword">const</span> permissions<span class="token operator">:</span> Map<span class="token operator">&lt;</span><span class="token builtin">string</span><span class="token punctuation">,</span> Permission<span class="token operator">></span><span class="token punctuation">;</span></code></pre>
+<p>In practice, the roles and permissions could be stored in separate sources (tables in relational database or even different types of storage) and connected through some kind of identification.
+But this indirection is inconvenient when used in business logic.</p>
+</div>
+</div>
+<div class="tabs" data-tab-context="reuse">
+<div class="tabs-header">
+<span class="tab-label" data-tab-id="better">Better</span><span class="tab-label" data-tab-id="worse">Worse</span>
+</div>
+<div class="tab-content" data-tab-id="better">
+<pre class="language-ts"><code class="language-ts"><span class="token keyword">type</span> <span class="token class-name">Overview</span> <span class="token operator">=</span> <span class="token punctuation">{</span><br>    product<span class="token operator">:</span> Product<span class="token punctuation">,</span><br>    customer<span class="token operator">:</span> Customer<span class="token punctuation">,</span><br><span class="token punctuation">}</span></code></pre>
+<p>Existing domain types are reused in the aggregate type.
+In the end, they represent specific entities in the domain model regardless of the context.
+It doesn’t matter that a specific use case doesn’t need all properties of those entities.</p>
+</div>
+<div class="tab-content" data-tab-id="worse">
+<pre class="language-ts"><code class="language-ts"><span class="token keyword">type</span> <span class="token class-name">Overview</span> <span class="token operator">=</span> <span class="token punctuation">{</span><br>    productCode<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">,</span><br>    customerId<span class="token operator">:</span> <span class="token builtin">number</span><span class="token punctuation">,</span><br>    customerName<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">,</span><br><span class="token punctuation">}</span></code></pre>
+<p>Properties from different types are inlined (and potentially filtered) in the aggregate type.
+Imagine having many of these aggregate types.
+What happens if we want to change the customer ID type from <code>number</code> to <code>string</code>?</p>
+</div>
+</div>
+<div class="tabs" data-tab-context="leakage">
+<div class="tabs-header">
+<span class="tab-label" data-tab-id="better">Better</span><span class="tab-label" data-tab-id="worse">Worse</span>
+</div>
+<div class="tab-content" data-tab-id="better">
+<pre class="language-ts"><code class="language-ts"><span class="token keyword">type</span> <span class="token class-name">Item</span> <span class="token operator">=</span> <span class="token punctuation">{</span><br>    enabled<span class="token operator">:</span> <span class="token builtin">boolean</span><span class="token punctuation">,</span><br><span class="token punctuation">}</span></code></pre>
+<p>The <code>enabled</code> flag is a required property because it’s what business logic expects and requires.</p>
+</div>
+<div class="tab-content" data-tab-id="worse">
+<pre class="language-ts"><code class="language-ts"><span class="token keyword">type</span> <span class="token class-name">Item</span> <span class="token operator">=</span> <span class="token punctuation">{</span><br>    <span class="token comment">// Undefined means true</span><br>    enabled<span class="token operator">?</span><span class="token operator">:</span> <span class="token builtin">boolean</span><span class="token punctuation">,</span><br><span class="token punctuation">}</span></code></pre>
+<p>Maybe we introduced the <code>enabled</code> property later as a new feature but for backwards compatibility it is optional with some default value if not provided.
+This is a leakage of implementation details (backwards compatibility) of the external API.
+Moreover, having <code>enabled?</code> means additional, useless check everywhere it’s used in business logic.</p>
+</div>
+</div>
+<div class="tabs" data-tab-context="enums-over-booleans">
+<div class="tabs-header">
+<span class="tab-label" data-tab-id="better">Better</span><span class="tab-label" data-tab-id="worse">Worse</span>
+</div>
+<div class="tab-content" data-tab-id="better">
+<pre class="language-ts"><code class="language-ts"><span class="token keyword">type</span> <span class="token class-name">Operation</span> <span class="token operator">=</span> <span class="token punctuation">{</span><br>    status<span class="token operator">:</span> <span class="token string">"active"</span> <span class="token operator">|</span> <span class="token string">"successful"</span> <span class="token operator">|</span> <span class="token string">"failed"</span><span class="token punctuation">,</span><br><span class="token punctuation">}</span></code></pre>
+<p>The status is explicitly represented by all possible variants and it’s clear what each one means.
+It’s also possible to add more variants in the future.
+This is a good example why to <a href="https://www.teamten.com/lawrence/programming/prefer-enums-over-booleans.html">prefer enums over booleans</a>.</p>
+</div>
+<div class="tab-content" data-tab-id="worse">
+<pre class="language-ts"><code class="language-ts"><span class="token keyword">type</span> <span class="token class-name">Operation</span> <span class="token operator">=</span> <span class="token punctuation">{</span><br>    completed<span class="token operator">:</span> <span class="token builtin">boolean</span><span class="token punctuation">,</span><br>    successful<span class="token operator">:</span> <span class="token builtin">boolean</span><span class="token punctuation">,</span><br><span class="token punctuation">}</span></code></pre>
+<p>The status is implicitly built-up from multiple properties which is an unnecessary complication.
+Moreover, the type allows to represent an invalid state with <code>completed: false</code> and <code>successful: true</code>.</p>
+</div>
+</div>
+<div class="tabs" data-tab-context="localization">
+<div class="tabs-header">
+<span class="tab-label" data-tab-id="better">Better</span><span class="tab-label" data-tab-id="worse">Worse</span>
+</div>
+<div class="tab-content" data-tab-id="better">
+<pre class="language-ts"><code class="language-ts"><span class="token keyword">type</span> <span class="token class-name">LangCode</span> <span class="token operator">=</span> <span class="token string">"en"</span> <span class="token operator">|</span> <span class="token string">"fr"</span> <span class="token operator">|</span> <span class="token string">"cz"</span><span class="token punctuation">;</span><br><span class="token keyword">type</span> <span class="token class-name">LocalizedText</span> <span class="token operator">=</span> Record<span class="token operator">&lt;</span>LangCode<span class="token punctuation">,</span> <span class="token builtin">string</span><span class="token operator">></span><span class="token punctuation">;</span><br><br><span class="token keyword">type</span> <span class="token class-name">Message</span> <span class="token operator">=</span> <span class="token punctuation">{</span><br>    title<span class="token operator">:</span> LocalizedText<span class="token punctuation">,</span><br>    content<span class="token operator">:</span> LocalizedText<span class="token punctuation">,</span><br><span class="token punctuation">}</span></code></pre>
+<p>This is not an example how to do localization in an application, but it again shows a use of special type for a dedicated use case.
+Whenever a support for a new language is added, the typechecker makes sure that the corresponding translations are defined for every use of <code>LocalizedText</code>.</p>
+</div>
+<div class="tab-content" data-tab-id="worse">
+<pre class="language-ts"><code class="language-ts"><span class="token keyword">type</span> <span class="token class-name">Message</span> <span class="token operator">=</span> <span class="token punctuation">{</span><br>    titleEn<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">,</span><br>    titleFr<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">,</span><br>    titleCz<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">,</span><br>    contentEn<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">,</span><br>    contentFr<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">,</span><br>    contentCz<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">,</span><br><span class="token punctuation">}</span></code></pre>
+<p>All languages are inlined in the message type.
+Whenever a support for a new language is needed, it’s up to the developer to make sure it’s added on all places.
+This example is a bit stretched, but subtler variants of this pattern are not rare.</p>
+</div>
+</div>
+<p>Again, these examples only scratch the surface.
+Choosing the right representation is about practice and lessons learned.</p>
+<h2 id="architectures">Architectures <a class="header-anchor" href="#architectures">#</a></h2>
+<p>After making our hands dirty with code, let’s zoom out again.
+I would like to match the general ideas discussed so far to specific, widely-known software architectures.
+Specifically, I will use <a href="https://martinfowler.com/bliki/PresentationDomainDataLayering.html">layered</a> and <a href="https://alistair.cockburn.us/hexagonal-architecture">hexagonal</a> architectures.
+There are others, like <a href="https://jeffreypalermo.com/2008/07/the-onion-architecture-part-1/">onion</a> and <a href="https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html">clean</a> and probably more, but for the purposes of this post the motives behind are essentially the same.
+I recommend reading about them after finishing my description and it should be clear what I mean.</p>
+<p><strong>Layered architecture</strong> is one of the most common and well-known ways to modularize an application.
+It separates different concerns to different <em>layers</em>.
+Typically, there is the presentation layer (UI or public API), the domain layer (domain and business logic) and the data layer (database or other persistence storage).</p>
+<p>This is the base, but variations exist.
+For example, the data layer can be split into persistence (e.g., database) and infrastructure (e.g., logging or external services) layers or there is a new service or application layer providing use cases implementation on top of domain logic.</p>
+<p>An illustration of this architecture can be seen below.</p>
+<figure><img src="/static/img/domain-layered-architecture.png" style="max-width: 40%" alt="Layered architecture diagram.
+"><figcaption><p>Layered architecture diagram.</p>
+</figcaption></figure>
+<p><strong>Hexagonal architecture</strong> focuses on isolation and independence of domain/business logic, often referred to as <em>core</em>.
+<em>Ports</em> (input, data, auth, …) define interfaces to interact with the core.
+<em>Adapters</em> (REST API, SQL database, OAuth, …) implement the corresponding port interface and act as translators from and to specific technology.</p>
+<p>The choice of ports and adapters depends on the application.
+Ports are a generic concept focusing on an aspect/need of the application, while adapters are concrete implementations.
+This distinction is important for hexagonal architecture because it argues that change or addition of a technology is not rare and the setup is prepared for that.</p>
+<p>An illustration of this architecture can be seen below.</p>
+<figure><img src="/static/img/domain-hexagonal-architecture.png" style="max-width: 85%" alt="Hexagonal architecture diagram.
+"><figcaption><p>Hexagonal architecture diagram.</p>
+</figcaption></figure>
+<p>How these two architectures relate to the topic of this article?
+To answer that question, let’s compare the two in a single diagram.</p>
+<figure><img src="/static/img/domain-architecture-comparison.png" style="max-width: 100%" alt="Graphical comparison of layered and hexagonal architectures.
+"><figcaption><p>Graphical comparison of layered and hexagonal architectures.</p>
+</figcaption></figure>
+<p>I’m sorry, it’s a spot the difference puzzle.
+I hope you didn’t spend too much time with it.
+My point with the picture is that they are the same from the practical point of view.
+They both divide the application into parts concerned about different things with the goal of protecting the domain.
+The thesis of this post.</p>
+<p>Of course there are differences.
+Otherwise it wouldn’t make sense to give them different names, right?
+Regarding these two, my understanding is that the main distinctions are:</p>
+<ul>
+<li>In layered architecture, dependencies go from top to bottom, that is, the domain layer depends on the data layer and “speaks its language”. In hexagonal architecture, dependencies go inwards and mapping external representation to the domain language is always the responsibility of adapters.</li>
+<li>The colors in my diagram are not precise. In layered architecture, the distinction between green (interfaces) and red (implementations) is not explicit. The interface and implementation live together within the layer.</li>
+</ul>
+<p>As I mentioned at the beginning of this section, it’s worthy to go read the specifics of different architectures.
+Yes, there are details in which they differ, and these details can be important, but all of them share the core principles.</p>
+<h2 id="why-bother%3F">Why bother? <a class="header-anchor" href="#why-bother%3F">#</a></h2>
+<p>This section could have been named Motivation, but it felt strange to put the motivation at the end of the article, especially when I advertised it as motivation-focused.</p>
+<p>Even though the ideas presented here sound more or less simple, they do bring substantial effort needed to comply with them compared to the YOLO approach.
+And that raises questions.</p>
+<p>Designing the domain without even touching code?
+Abstracting data access because I could theoretically store data in blob storage instead of database?
+Creating multiple types for the same entity just because working with ISO 8601 strings instead of date types is slightly less convenient?</p>
+<p>Valid questions!
+And I am going to try to answer them in this section.
+At the same time, I think that the appreciation for these principles is directly proportional to the experienced pain accumulated while working on softwares that did not follow them.
+Feel free to go ahead and write code that <em>you</em> maintain in a way that allows you to gain this experience.
+And I don’t mean it sarcastically.</p>
+<p>Ok, enough intro to this section, let’s get motivated.
+Why bother then?</p>
+<p><strong>Clean domain model boosts productivity.</strong>
+Implementing new features feels smooth and natural, there are no rough edges requiring finding workarounds, no subtle invariants causing annoying bugs, paradise.
+Of course this assumes the ideal state which is rare – or maybe even extinct – species.
+But isolating the implementation details of specific technologies unlocks the potential for getting closer to it.</p>
+<p><strong>Isolation better absorbs change.</strong>
+When a change in requirements comes, it usually doesn’t impact the core problem domain drastically.
+Maybe an entity is augmented, some entities or relationships are added, new logic is implemented or an existing one is changed.</p>
+<p>More often, such changes affect the implementation details.
+Maybe displaying a thing in a different way, refactoring a table to a few new tables, creating whole new controller, supporting new gaming input device, and so on.
+But all these concerns are isolated in thin layers.</p>
+<p>Additionally, the isolation reduces risks of functional regressions after technology changes (different database engine, different communication protocol, …), because these details are abstracted.
+And from the other side, the business logic can evolve without affecting stable public APIs.</p>
+<p><strong>Separation of concerns reduces the cognitive load on developers.</strong>
+With strict boundaries, a change in one area has limited scope of propagation and the complexity of other areas is hidden behind the interfaces.
+This allows to think about each area relatively independently and frees up some valuable brain capacity which would be otherwise occupied by worries about the other areas.</p>
+<p>When you are working on the domain, you don’t need to care about how your changes are handled by respective technologies. As long as you comply with the interface, they <s>will</s> should.
+And when your task concerns an interface layer, you can focus only on the implementation details of the corresponding technology and ignore how were incoming domain data generated or what will happen to the data you hand over to the domain.</p>
+<p><strong>Isolation simplifies testing of business logic by faking external world.</strong>
+Testing is notoriously challenging when the code under test depends on some I/O, for example databases, external systems, rendering APIs, non-deterministic components like randomness or system time, and so on.
+Otherwise, business logic is just code and it should be possible to run it with some inputs and assert the outputs.</p>
+<p>When the access to I/O is isolated inside thin interfaces, it’s ready to be faked by an implementation that simulates its behavior in a predictable way without side effects.
+This allows exercising as much production code as feasible in tests without dealing with real infrastructure.</p>
+<p><strong>Clean domain model leads to better understanding by the customer.</strong>
+If you created the model in cooperation with the customer and focused on covering only the problem itself, it likely uses concepts very much familiar to them.
+It captures what they more or less have in their mind when thinking about the problem, or at least they know what you are talking about.</p>
+<p>This is a tremendous help when discussing the project and new features.
+In both directions.
+They understand what you mean without the need for translation, and you more often than not understand them because you can map their concepts to the ones you already grasped.</p>
+<h2 id="concluding-remarks">Concluding remarks <a class="header-anchor" href="#concluding-remarks">#</a></h2>
+<p>This article shouldn’t be taken as dogma.
+As many things, it’s about trade-offs.
+Maybe your software doesn’t have super complex domain and business logic and you could question if it’s worthwhile to bother.
+In that case, the benefits of isolation might not be that strong.
+But I would argue that they still hold.</p>
+<p>The memento shouldn’t be to start spending 30 minutes contemplating how the type representing a domain entity can be perfect.
+But do put thoughts into it.
+And if you see something that will be clearly inconvenient, address that.</p>
+<p>It’s also fine to take shortcuts.
+A typical example is type aliases/re-exports.
+Instead of writing all versions (domain, externals) of an entity, re-export one as the other.
+As long as they are the same and there are no inconveniences in the domain type, all is good.
+Once a need for divergence occurs, only then you will define them separately.
+But your entire codebase will be ready for this change and only relevant parts will be affected.</p>
+<p>This post was an unnecessarily long essay on the topic of why it’s important to isolate the domain from technological details.
+This idea is very common in different architectures and design approaches (one of the most well-known representatives is <a href="https://en.wikipedia.org/wiki/Domain-driven_design">domain-driven design</a><sup class="footnote-ref"><a href="#fn8" id="fnref8">[8]</a><span class="footnote-content">The title of my article uses the term “domain-centric”. That’s because I didn’t want to directly tie it to the domain-driven design approach. This approach has lot more to it, having a book and whole practice around it, whereas the scope of my essay is smaller and more general.
+But I don’t take credit for the term “domain-centric”, it’s floating over the internet and I just hope that it doesn’t have a specific meaning.</span></sup>).
+But when you read about them, it’s often burdened with details which are specific to that particular approach.
+That’s good, these details are important as guides for how to tackle problems in practice.</p>
+<p>My goal was to demonstrate the motivation behind the core idea that is shared by all these approaches.
+If I convinced at least one of you, then I succeeded.</p>
+<h2 id="tl%3Bdr">TL;DR <a class="header-anchor" href="#tl%3Bdr">#</a></h2>
+<p>We build software to solve someone’s problem and problems have a domain.
+Ask “what do we need to be able to solve the problem?” when modeling it.</p>
+<p>Isolate the domain and business logic from technical and implementation details.
+Introduce thin layers between the domain and external world that handle the details and limitations of the chosen technology.
+Common interfaces include <a href="https://www.umlboard.com/design-patterns/repository.html">repositories</a>, controllers, <a href="https://martinfowler.com/articles/gateway-pattern.html">gateways</a>, UI components, API services, state managers, or input managers.
+Types for external objects should not cross the interface boundary into the domain.</p>
+<p>There are different options for data persistence, transfer, display, etc., but domain objects are (mostly) not impacted by them.
+Software architectures (<a href="https://martinfowler.com/bliki/PresentationDomainDataLayering.html">layered</a>, <a href="https://alistair.cockburn.us/hexagonal-architecture">hexagonal</a>, <a href="https://jeffreypalermo.com/2008/07/the-onion-architecture-part-1/">onion</a>, <a href="https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html">clean</a>, …) differ in some aspects but the goal of protecting the domain is shared.</p>
+<p>Clean domain model boosts productivity and leads to better understanding by the customer.
+Isolation better absorbs change and simplifies testing of business logic by faking external world.
+Separation of concerns reduces the cognitive load on developers.</p>
+<hr class="footnotes-sep">
+<section class="footnotes">
+<ol class="footnotes-list">
+<li id="fn1" class="footnote-item"><p>It’s annoying and unnecessary cognitive load when you need to use different terms for the same concept in the code, in the team and with the customer, just because you didn’t think about the most fitting name upfront. <a href="#fnref1" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn2" class="footnote-item"><p>I was really surprised that I failed to find a good generic resource on the controllers concept that is less tied to the original definition in the MVC pattern, traditionally used for UI applications, and more focusing on its role in server-side APIs.
+So here is at least documentation for a few, hand-picked frameworks: <a href="https://docs.nestjs.com/controllers">NestJS</a>, <a href="https://learn.microsoft.com/en-us/aspnet/core/web-api/">ASP.NET</a>, <a href="https://guides.rubyonrails.org/action_controller_overview.html">Ruby on Rails</a>, <a href="https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller.html">Spring Boot</a>. <a href="#fnref2" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn3" class="footnote-item"><p>You may wonder what “messy outside world” challenges are related to the global state management in SPA applications. Aren’t we free to carelessly store anything as JavaScript values and objects? Well, if you want features like <a href="https://redux.js.org/faq/organizing-state#can-i-put-functions-promises-or-other-non-serializable-items-in-my-store-state">persistence to local storage or time-travel debugging</a>, then not. <a href="#fnref3" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn4" class="footnote-item"><p>I acknowledge that compiler frontend and backend are usually anything but thin, which was my recommendation for interface layer. But it’s still worth to strive for making it as thin as constraints of the problem allow. This can be supported by generalizing the algorithms used in these components and provide way how these generalizations interact with specific implementations. <a href="#fnref4" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn5" class="footnote-item"><p>A fascinating read related to this is <a href="https://netflixtechblog.com/uda-unified-data-architecture-6a6aee261d8d">Model Once, Represent Everywhere</a>. There it’s described how Netflix tackles the challenge that each system models core business concepts differently and in isolation without shared understanding. Their solution is to define domain models once and use these definitions to generate schemas in specific technologies for specific systems (and more). Of course, this particular solution needed for Netflix scale is not a silver bullet, but it shows how this topic is important. <a href="#fnref5" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn6" class="footnote-item"><p>I mean on the level of pseudocode in this context, not that every code in TypeScript is pseudocode. <a href="#fnref6" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn7" class="footnote-item"><p>Specifically for TypeScript, I recommend to check the <a href="https://egghead.io/blog/using-branded-types-in-typescript">branded types</a> technique.
+Other mainstream programming languages use nominal type system where we can create a new type and the typechecker makes sure that the values are really of the correct type.
+But TypeScript uses structural type system and branded types are needed for extra safety. <a href="#fnref7" class="footnote-backref">↩︎</a></p>
+</li>
+<li id="fn8" class="footnote-item"><p>The title of my article uses the term “domain-centric”. That’s because I didn’t want to directly tie it to the domain-driven design approach. This approach has lot more to it, having a book and whole practice around it, whereas the scope of my essay is smaller and more general.
+But I don’t take credit for the term “domain-centric”, it’s floating over the internet and I just hope that it doesn’t have a specific meaning. <a href="#fnref8" class="footnote-backref">↩︎</a></p>
+</li>
+</ol>
+</section>
+
+</article>
+
+ </main>
+ <footer>
+ <p class="copyright">Licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">Creative Commons</a> | Feel free to share</p>
+ <div class="links">
+ <a href="https://github.com/pnevyk" target="_blank"><i class="fa fa-github"></i></a>
+ <a href="https://twitter.com/pnevyk" target="_blank"><i class="fa fa-twitter"></i></a>
+ <a href="/feed.xml" target="_blank"><i class="fa fa-rss"></i></a>
+ </div>
+ </footer>
+
+ <script src="/static/js/main.js"></script>
+ <script defer src="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.min.js" integrity="sha384-g7c+Jr9ZivxKLnZTDUhnkOnsh30B4H0rpLUpJ4jAIKs4fnJI+sEnkvrMWph2EDg4" crossorigin="anonymous"></script>
+</body>
+</html>
