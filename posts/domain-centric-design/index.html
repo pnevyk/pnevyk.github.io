@@ -51,7 +51,7 @@ That said, I stand behind the extensiveness of it because I think it’s importa
 But at the same time, I summarize the core points in a compressed form in the <a href="#tl%3Bdr">TL;DR</a> section where you can skip to if you feel like giving up while reading the article or before even trying.</p>
 <details class="toc">
 <summary>Table of contents</summary>
-<nav class="table-of-contents"><ul><li><a href="#why-we-build-software">Why we build software </a></li><li><a href="#problem-solutions-exist-in-the-real-world">Problem solutions exist in the real world </a></li><li><a href="#common-interfaces">Common interfaces </a></li><li><a href="#focus-on-domain-over-technology">Focus on domain over technology </a></li><li><a href="#architectures">Architectures </a></li><li><a href="#why-bother%3F">Why bother? </a></li><li><a href="#concluding-remarks">Concluding remarks </a></li><li><a href="#tl%3Bdr">TL;DR </a></li></ul></nav></details>
+<nav class="table-of-contents"><ul><li><a href="#why-we-build-software">Why we build software </a></li><li><a href="#problem-solutions-exist-in-the-real-world">Problem solutions exist in the real world </a></li><li><a href="#common-interfaces">Common interfaces </a></li><li><a href="#focus-on-domain-over-technology">Focus on domain over technology </a></li><li><a href="#examples-of-better-representation">Examples of better representation </a></li><li><a href="#architectures">Architectures </a></li><li><a href="#why-bother%3F">Why bother? </a></li><li><a href="#concluding-remarks">Concluding remarks </a></li><li><a href="#tl%3Bdr">TL;DR </a></li></ul></nav></details>
 <h2 id="why-we-build-software">Why we build software <a class="header-anchor" href="#why-we-build-software">#</a></h2>
 <p>I will start the article with a slightly philosophical question and that is: Why we build software anyway?
 I guess there are various motivations driving people to write code and build software.
@@ -207,6 +207,7 @@ But none of these options meaningfully influenced our problem solution domain.
 It should be the responsibility of the interfaces to translate our domain to these technologies.</p>
 <p>To repeat: Use the <strong>best representation for domain objects</strong> disregarding the outside world.
 Or at least think about it and then make compromises if needed.</p>
+<h2 id="examples-of-better-representation">Examples of better representation <a class="header-anchor" href="#examples-of-better-representation">#</a></h2>
 <p>Below I collected a few code-level better/worse examples that try to communicate what I mean by that statement.
 They are really only examples, not meant to be followed like the universal truth.
 Make sure to see both variants, both code and commentary, to fully appreciate the difference.
