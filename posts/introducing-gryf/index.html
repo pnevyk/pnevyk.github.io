@@ -96,9 +96,9 @@ They could find that in a blog post, Wikipedia article, paper or told by a colle
 And that’s all they should care about in most cases – <em>how</em> to solve that problem should be <a href="#automatic-algorithm-selection">left to the tool</a>.</p>
 <p>The second reason for organizing the algorithms into problems is to hide implementation details and provide additional features.
 In existing graph libraries for Rust, the algorithms often return standard types like <code>Vec</code> or <code>HashMap</code>
-(<a href="https://docs.rs/petgraph/0.8.2/petgraph/algo/dijkstra/fn.dijkstra.html">1</a>, <a href="https://docs.rs/petgraph/0.8.2/petgraph/algo/fn.toposort.html">2</a>, <a href="https://docs.rs/pathfinding/4.14.0/pathfinding/directed/dijkstra/fn.dijkstra.html">3</a>, <a href="https://docs.rs/graph/0.3.1/graph/sssp/fn.delta_stepping.html">4</a>).</p>
-<p>But that has drawbacks.
-It somewhat leaks the implementation choices to the API and it cannot be changed in a backwards compatible way.
+(<a href="https://docs.rs/petgraph/0.8.2/petgraph/algo/dijkstra/fn.dijkstra.html">1</a>, <a href="https://docs.rs/petgraph/0.8.2/petgraph/algo/fn.toposort.html">2</a>, <a href="https://docs.rs/pathfinding/4.14.0/pathfinding/directed/dijkstra/fn.dijkstra.html">3</a>, <a href="https://docs.rs/graph/0.3.1/graph/sssp/fn.delta_stepping.html">4</a>).
+But that has drawbacks.</p>
+<p>It somewhat leaks the implementation choices to the API and it cannot be changed in a backwards compatible way.
 But a more important consequence is that it misses a chance to provide additional functionality on the problem’s solution that a custom type could implement.
 Examples of these bonus features are path reconstruction for shortest paths algorithm, asking whether the found matching is perfect or not, or lazy behavior (iterators) for algorithms that allow it.</p>
 <p>In gryf, all algorithms strictly return a dedicated new type which avoids these drawbacks.
@@ -203,7 +203,7 @@ while making sure that the value is never negative.
 Whether this is actually useful and worthy, I am not sure yet.</p>
 <p>A valid concern is whether the automatic algorithm selection isn’t too magical
 and if it could lead to surprising behavior when choosing different algorithm for different graphs in the same program.
-Some sort of adaptiveness exists at various places, for example in sorting algorithm in the standard library
+Some sort of adaptiveness exists in various places, for example in sorting algorithm in the standard library
 (<a href="https://github.com/rust-lang/rust/blob/59a74db37df8628f778faf75faa41958bb07a42a/library/core/src/slice/sort/unstable/mod.rs#L31-L41">1</a>, <a href="https://github.com/rust-lang/rust/blob/59a74db37df8628f778faf75faa41958bb07a42a/library/core/src/slice/sort/unstable/quicksort.rs#L23-L36">2</a>)
 or in <a href="https://crates.io/crates/gemm">gemm</a>
 (<a href="https://github.com/sarah-ek/gemm/blob/8cdc1de4af69ce3fd2575b2c983fc1ccc974425f/gemm-common/src/gemm.rs#L261">1</a>, <a href="https://github.com/sarah-ek/gemm/blob/8cdc1de4af69ce3fd2575b2c983fc1ccc974425f/gemm-common/src/gemm.rs#L399-L410">2</a>),
@@ -307,16 +307,16 @@ The process is as follows:</p>
 <figure><img src="/static/img/gryf-benchmarks.png" style="max-width: 100%" alt="Results for the "basic operations" benchmark, comparing gryf and petgraph on small graphs (top) and larger graphs (bottom).
 Parameter p represents the edge density in the graph.
 The benchmarks setup can be found here,
-although different sizes and densities were used for the purposes of the graph.
+although different sizes and densities were used for the purposes of the plot.
 "><figcaption><p>Results for the “basic operations” benchmark, comparing gryf and petgraph on small graphs (top) and larger graphs (bottom).
 Parameter <em>p</em> represents the edge density in the graph.
 The benchmarks setup can be found <a href="https://github.com/pnevyk/gryf/blob/c8a47c621dcee4b8edd64ee9cd9ed12edcd16d8d/gryf/benches/basic_ops.rs">here</a>,
-although different sizes and densities were used for the purposes of the graph.</p>
+although different sizes and densities were used for the purposes of the plot.</p>
 </figcaption></figure>
 <p>It turns out that on smaller, sparse graphs, petgraph is faster than gryf.
 But interestingly, <strong>on larger, dense graphs, it is actually gryf who does better</strong>.
 This trend continues with vertex count increasing.
-For instance, I tried to bench <em>N = 5000, p = 0.5</em> graph and results are significant with 11.88 s for gryf and 2.926 min for petgraph.</p>
+For instance, I tried to bench <em>N = 5000, p = 0.5</em> graph and results are significant with 12 seconds for gryf and 3 minutes for petgraph.</p>
 <p>The rest of the benchmarks test the graph algorithms that gryf implements: shortest paths (Dijkstra and Bellman–Ford) and topological sort.
 First a graph is created with the same rules as in steps (1) and (2) above.
 The graph creation is not included in the time measurement.
@@ -387,7 +387,7 @@ It’s also not a single weekend project I threw into the world – I have spent
 <p>Developing a new library from scratch allows wild experimentation, and whoa, some of the changes were quite intense and substantial.
 This wouldn’t be possible to do in an existing crate which has (many) real users.
 But if the features of gryf catch attention of users and petgraph will be willing to adopt them,
-then I will be in favor focusing on petgraph to avoid unnecessary competition.</p>
+then I will be in favor of focusing on petgraph to avoid unnecessary competition.</p>
 <p>I hope that you will have great time with gryf if you use it and it will help you to get your project done!</p>
 <h2 id="acknowledgements">Acknowledgements <a class="header-anchor" href="#acknowledgements">#</a></h2>
 <p>I would also like to dedicate a part of this post to thank some people.</p>
